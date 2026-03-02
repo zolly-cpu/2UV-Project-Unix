@@ -27,6 +27,8 @@
 #include <QtGui/QStandardItem>
 #include <QtCore/QList>
 #include <QtCore/QVariant>
+#include <QtGui/QScreen>
+#include <QtCore/QSize>
 //#include <QtCore/qtalgorithms>
 #include <QtCore/QSignalMapper>
 #include <QtCore/QThread>
@@ -113,8 +115,16 @@ private:
 	Qt3DCore::QEntity* createPointEntity(Qt3DCore::QEntity* rootEntity, QString paName, QString paSSID, QString paKind, QString paQRcode, QString paUUID, QString paXcoord, QString paYcoord, QString paZcoord, int paId);
 	Qt3DCore::QEntity* createPlane(Qt3DCore::QEntity* rootEntity, QString paPlaneImage);
 	Qt3DCore::QEntity* createLineEntity(Qt3DCore::QEntity* rootEntity);
-	Qt3DExtras::Qt3DWindow* meViewPort = NULL;
-	QWidget* meContainer = NULL;
+
+	QWidget *widget;
+	QHBoxLayout *hLayout;
+	QVBoxLayout *vLayout;
+	Qt3DExtras::Qt3DWindow* meViewPort;
+	QWidget* meContainer;
+	Qt3DCore::QEntity * rootEntity;
+	Qt3DInput::QInputAspect *input;
+	Qt3DExtras::QOrbitCameraController * camController;
+	Qt3DRender::QCamera * camera;
 	
 	//Points
 	// Sphere

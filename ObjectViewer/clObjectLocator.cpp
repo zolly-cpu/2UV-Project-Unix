@@ -16,12 +16,12 @@ clObjectLocator::clObjectLocator(clIceClientServer * paIceClientServer, clIceCli
 	readMappingIcons();
 	
     connect(meObjectLocator.btnRefresh, SIGNAL(clicked()),this,SLOT(slotButtonRefreshPressed()));
-    connect(meObjectLocator.tvwLocationView,SIGNAL(itemClicked(QTreeWidgetItem*, int)),this,SLOT(slotTreeClassItemPressed(QTreeWidgetItem*,int)));
+    connect(meObjectLocator.tvwLocationView,SIGNAL(itemDoubleClicked(QTreeWidgetItem*, int)),this,SLOT(slotTreeClassItemPressed(QTreeWidgetItem*,int)));
     	
 	//Fill the userinterfaces
 	fillObjectLocations();
 	
-	
+	widget = NULL;
 	/////// Setting up the timer function ///////////////////////////////////
 	meTimer = new QTimer(this);
 	meTimer->setInterval(3000);
@@ -37,7 +37,7 @@ void clObjectLocator::slotDoIt()
 	try
     {
 
-		if (meObjectLocator.horizontalLayout->count() > 1)
+		if (meObjectLocator.horizontalLayout_Widgets->count() > 1)
 		{
             meIceClientLogging->insertItem("50",QString(QHostInfo::localHostName()),"2UVObjectViewer.exe","clObjectLocator::slotDoIt " + QString::number(meUUID.size()));
 			for (int i = 0; i < meUUID.size(); i++)
@@ -61,6 +61,7 @@ void clObjectLocator::slotDoIt()
 				}
 				else
 				{
+					meIceClientLogging->insertItem("50",QString(QHostInfo::localHostName()),"2UVObjectViewer.exe","clObjectLocator::slotDoIt -> Objects to locate values amount " + QString::number(loGetValues.size()));
                     if (loGetValues.size() > 0)
                     {
                         /*
@@ -72,6 +73,7 @@ void clObjectLocator::slotDoIt()
                                                                                                                          + QString(loGetValues.at(2).c_str())
                                                                                                                          + QString(".") );
                         */
+						//TODO UNCOMMENT
                         transform.at(i)->setTranslation(QVector3D(QString(loGetValues.at(0).c_str()).toFloat()/meX_SIZE, QString(loGetValues.at(2).c_str()).toFloat(), QString(loGetValues.at(1).c_str()).toFloat()/meY_SIZE));
 
                     }
@@ -163,12 +165,13 @@ bool clObjectLocator::showLocatorMapForLocation(QString paUUID)
 	try
 	{
 
-		auto children = meObjectLocator.horizontalLayout->children();
-		for (auto i = 0; i < meObjectLocator.horizontalLayout->count(); i++) {
-			QWidget * tmp = meObjectLocator.horizontalLayout->itemAt(i)->widget();
+		auto children = meObjectLocator.horizontalLayout_Widgets->children();
+		meIceClientLogging->insertItem("50",QString(QHostInfo::localHostName()),"2UVObjectViewer.exe","clObjectLocator::showLocatorMapForLocation -> Widget count horizontalLayout_Widgets" + QString::number(meObjectLocator.horizontalLayout_Widgets->count()));
+		for (auto i = 0; i < meObjectLocator.horizontalLayout_Widgets->count(); i++) {
+			QWidget * tmp = meObjectLocator.horizontalLayout_Widgets->itemAt(i)->widget();
 			if (i == 1) 
 			{
-				meObjectLocator.horizontalLayout->removeWidget(tmp);
+				meObjectLocator.horizontalLayout_Widgets->removeWidget(tmp);
 				delete tmp;
 				material.clear();
 				transform.clear();
@@ -178,6 +181,21 @@ bool clObjectLocator::showLocatorMapForLocation(QString paUUID)
 				meUUID.clear();
 			}
 		}
+
+
+		if (widget != NULL)
+		{
+			delete widget;
+			widget = NULL;
+
+			material.clear();
+			transform.clear();
+			sphereMesh.clear();
+			sphereEntity.clear();
+			meName.clear();
+			meUUID.clear();
+		}
+
 		
 		meDisplayedView = paUUID;
 		/*
@@ -191,13 +209,33 @@ bool clObjectLocator::showLocatorMapForLocation(QString paUUID)
 		
 		// Create a Qt3D window
 		meViewPort = new Qt3DExtras::Qt3DWindow();
+		meViewPort->defaultFrameGraph()->setClearColor(QColor(QRgb(0x4d4d4f)));
+		//meViewPort->defaultFrameGraph()->setClearColor(QColor(QRgb(0x000000)));
 		//meObjectLocator.wdgObjectLocation = QWidget::createWindowContainer(meViewPort);
 		meContainer = QWidget::createWindowContainer(meViewPort);
+		QSize screenSize = meViewPort->screen()->size();
 		meContainer->setMinimumSize(QSize(800, 600));
-		//container->setMinimumSize(QSize(800, 600));
-		meObjectLocator.horizontalLayout->addWidget(meContainer);
+		meContainer->setMaximumSize(screenSize);
+
+
+		input = new Qt3DInput::QInputAspect;
+		meViewPort->registerAspect(input);
+
+
+		widget = new QWidget;
+		hLayout = new QHBoxLayout(widget);
+		vLayout = new QVBoxLayout();
+		vLayout->setAlignment(Qt::AlignTop);
+		hLayout->addWidget(meContainer, 1);
+		hLayout->addLayout(vLayout);
+
+		widget->setWindowTitle(QStringLiteral("Location"));
+
+
+
+
 		// Root entity
-		auto rootEntity = new Qt3DCore::QEntity();
+		rootEntity = new Qt3DCore::QEntity();
 
 		// Add the line entity
 		createLineEntity(rootEntity);
@@ -267,7 +305,7 @@ bool clObjectLocator::showLocatorMapForLocation(QString paUUID)
 						}
 						else
 						{
-							meIceClientLogging->insertItem("50",QString(QHostInfo::localHostName()),"2UVObjectViewer.exe","clObjectLocator::showLocatorMapForLocation -> test1");
+
 							QString loXcoord;
 							QString loYcoord;
 							QString loZcoord;
@@ -277,6 +315,9 @@ bool clObjectLocator::showLocatorMapForLocation(QString paUUID)
 							QString loQRcode;
 							QString loUUID = QString(loReturnIds.at(i).c_str());
 							
+
+							meIceClientLogging->insertItem("50",QString(QHostInfo::localHostName()),"2UVObjectViewer.exe","clObjectLocator::showLocatorMapForLocation -> Props ObjectToLocate:" + QString::number(loGetProperties.size()));
+
 							for (int j = 0; j < loGetProperties.size(); j++)
 							{
 								if (QString(loGetProperties.at(j).c_str()).toUpper().compare(QString("NAME")) == 0)
@@ -324,6 +365,7 @@ bool clObjectLocator::showLocatorMapForLocation(QString paUUID)
 		}
 		else
 		{
+			meIceClientLogging->insertItem("50",QString(QHostInfo::localHostName()),"2UVObjectViewer.exe","clObjectLocator::showLocatorMapForLocation -> Props Plane:" + QString::number(loPlaneValues.size()));
 			if (loPlaneValues.size() > 0)
 			{
 				createPlane(rootEntity, QString(loPlaneValues.at(0).c_str()));
@@ -334,22 +376,34 @@ bool clObjectLocator::showLocatorMapForLocation(QString paUUID)
 		
 
 		// Camera setup
-		auto camera = meViewPort->camera();
+
+		camera = meViewPort->camera();
 		camera->lens()->setPerspectiveProjection(45.0f, 16.0f / 9.0f, 0.1f, 1000.0f);
 		camera->setPosition(QVector3D(0, 0, -2));
+		//TO REMOVE
+		//camera->setUpVector(QVector3D(0, 1, 0));
 		camera->setViewCenter(QVector3D(0, 0, 0));
 
 		// Camera controller
-		auto camController = new Qt3DExtras::QOrbitCameraController(rootEntity);
+		camController = new Qt3DExtras::QOrbitCameraController(rootEntity);
 		camController->setLinearSpeed(50.0f);
 		camController->setLookSpeed(180.0f);
 		camController->setCamera(camera);
 
+
 		// Set root entity
+		meIceClientLogging->insertItem("50",QString(QHostInfo::localHostName()),"2UVObjectViewer.exe","clObjectLocator::showLocatorMapForLocation -> set root entity");
 		meViewPort->setRootEntity(rootEntity);
 
 		// Show the window
-		meContainer->show();		
+		meIceClientLogging->insertItem("50",QString(QHostInfo::localHostName()),"2UVObjectViewer.exe","clObjectLocator::showLocatorMapForLocation -> show container");
+
+		//meObjectLocator.horizontalLayout_Widgets->addWidget(meContainer,1);
+
+
+		widget->show();
+		widget->resize(800, 600);
+		//meViewPort->show();
 		//meObjectLocator.wdgObjectLocation->show();
 		return true;
     }
@@ -377,9 +431,9 @@ Qt3DCore::QEntity* clObjectLocator::createPointEntity(Qt3DCore::QEntity* rootEnt
 		transform.push_back(new Qt3DCore::QTransform{sphereMesh.at(sphereMesh.size()-1)});
 		//transform->setRotationX(xAngle);
 		//transform->setRotationY(yAngle);
-		meIceClientLogging->insertItem("50",QString(QHostInfo::localHostName()),"2UVObjectViewer.exe","clObjectLocator::createPointEntity -> voor parsen");
+		meIceClientLogging->insertItem("50",QString(QHostInfo::localHostName()),"2UVObjectViewer.exe","clObjectLocator::createPointEntity -> setting the coord");
 		transform.at(transform.size()-1)->setTranslation(QVector3D(paXcoord.toFloat()/100, paZcoord.toFloat()/100, paYcoord.toFloat()/100));
-		meIceClientLogging->insertItem("50",QString(QHostInfo::localHostName()),"2UVObjectViewer.exe","clObjectLocator::createPointEntity -> na parsen");
+		meIceClientLogging->insertItem("50",QString(QHostInfo::localHostName()),"2UVObjectViewer.exe","clObjectLocator::createPointEntity -> coord set");
 		// Material
 		material.push_back(new Qt3DExtras::QPhongMaterial(rootEntity));
 		
@@ -425,7 +479,7 @@ Qt3DCore::QEntity* clObjectLocator::createPointEntity(Qt3DCore::QEntity* rootEnt
 		sphereEntity.at(sphereEntity.size()-1)->addComponent(material.at(material.size()-1));
 		sphereEntity.at(sphereEntity.size()-1)->addComponent(sphereMesh.at(sphereMesh.size()-1));
 		sphereEntity.at(sphereEntity.size()-1)->addComponent(transform.at(transform.size()-1));
-
+		meIceClientLogging->insertItem("50",QString(QHostInfo::localHostName()),"2UVObjectViewer.exe","clObjectLocator::createPointEntity -> returning the sphereEntity");
 		return sphereEntity.at(sphereEntity.size()-1);
 	}
     catch(exception &e)
@@ -468,111 +522,123 @@ Qt3DCore::QEntity* clObjectLocator::createPlane(Qt3DCore::QEntity* rootEntity,QS
 
 //Display the axes system
 Qt3DCore::QEntity* clObjectLocator::createLineEntity(Qt3DCore::QEntity* rootEntity) {
-    // Geometry for the line
-    auto geometry1 = new Qt3DRender::QGeometry(rootEntity);
-	auto geometry2 = new Qt3DRender::QGeometry(rootEntity);
-	auto geometry3 = new Qt3DRender::QGeometry(rootEntity);
 
-    // Vertex data (start and end points of the line)
-    QByteArray vertexData1;
-    vertexData1.resize(6 * sizeof(float)); // 2 points * 3 coordinates (x, y, z)
-    float* positions1 = reinterpret_cast<float*>(vertexData1.data());
-    positions1[0] = 0.0f; positions1[1] = 0.0f; positions1[2] = 0.0f; // Start point
-    positions1[3] = 1.0f; positions1[4] = 0.0f; positions1[5] = 0.0f; // End point
+	try
+	{
+		// Geometry for the line
+		auto geometry1 = new Qt3DRender::QGeometry(rootEntity);
+		auto geometry2 = new Qt3DRender::QGeometry(rootEntity);
+		auto geometry3 = new Qt3DRender::QGeometry(rootEntity);
 
-    auto vertexBuffer1 = new Qt3DRender::QBuffer(Qt3DRender::QBuffer::VertexBuffer, geometry1);
-    vertexBuffer1->setData(vertexData1);
+		// Vertex data (start and end points of the line)
+		QByteArray vertexData1;
+		vertexData1.resize(6 * sizeof(float)); // 2 points * 3 coordinates (x, y, z)
+		float* positions1 = reinterpret_cast<float*>(vertexData1.data());
+		positions1[0] = 0.0f; positions1[1] = 0.0f; positions1[2] = 0.0f; // Start point
+		positions1[3] = 1.0f; positions1[4] = 0.0f; positions1[5] = 0.0f; // End point
 
-    // Vertex data (start and end points of the line)
-    QByteArray vertexData2;
-    vertexData2.resize(6 * sizeof(float)); // 2 points * 3 coordinates (x, y, z)
-    float* positions2 = reinterpret_cast<float*>(vertexData2.data());
-    positions2[0] = 0.0f; positions2[1] = 0.0f; positions2[2] = 0.0f; // Start point
-    positions2[3] = 0.0f; positions2[4] = 1.0f; positions2[5] = 0.0f; // End point
+		auto vertexBuffer1 = new Qt3DRender::QBuffer(Qt3DRender::QBuffer::VertexBuffer, geometry1);
+		vertexBuffer1->setData(vertexData1);
 
-    auto vertexBuffer2 = new Qt3DRender::QBuffer(Qt3DRender::QBuffer::VertexBuffer, geometry2);
-    vertexBuffer2->setData(vertexData2);
+		// Vertex data (start and end points of the line)
+		QByteArray vertexData2;
+		vertexData2.resize(6 * sizeof(float)); // 2 points * 3 coordinates (x, y, z)
+		float* positions2 = reinterpret_cast<float*>(vertexData2.data());
+		positions2[0] = 0.0f; positions2[1] = 0.0f; positions2[2] = 0.0f; // Start point
+		positions2[3] = 0.0f; positions2[4] = 1.0f; positions2[5] = 0.0f; // End point
 
-
-    // Vertex data (start and end points of the line)
-    QByteArray vertexData3;
-    vertexData3.resize(6 * sizeof(float)); // 2 points * 3 coordinates (x, y, z)
-    float* positions3 = reinterpret_cast<float*>(vertexData3.data());
-    positions3[0] = 0.0f; positions3[1] = 0.0f; positions3[2] = 0.0f; // Start point
-    positions3[3] = 0.0f; positions3[4] = 0.0f; positions3[5] = -1.0f; // End point
-
-    auto vertexBuffer3 = new Qt3DRender::QBuffer(Qt3DRender::QBuffer::VertexBuffer, geometry3);
-    vertexBuffer3->setData(vertexData3);
+		auto vertexBuffer2 = new Qt3DRender::QBuffer(Qt3DRender::QBuffer::VertexBuffer, geometry2);
+		vertexBuffer2->setData(vertexData2);
 
 
+		// Vertex data (start and end points of the line)
+		QByteArray vertexData3;
+		vertexData3.resize(6 * sizeof(float)); // 2 points * 3 coordinates (x, y, z)
+		float* positions3 = reinterpret_cast<float*>(vertexData3.data());
+		positions3[0] = 0.0f; positions3[1] = 0.0f; positions3[2] = 0.0f; // Start point
+		positions3[3] = 0.0f; positions3[4] = 0.0f; positions3[5] = -1.0f; // End point
+
+		auto vertexBuffer3 = new Qt3DRender::QBuffer(Qt3DRender::QBuffer::VertexBuffer, geometry3);
+		vertexBuffer3->setData(vertexData3);
 
 
 
 
 
-    auto positionAttribute1 = new Qt3DRender::QAttribute();
-    positionAttribute1->setName(Qt3DRender::QAttribute::defaultPositionAttributeName());
-    positionAttribute1->setVertexBaseType(Qt3DRender::QAttribute::Float);
-    positionAttribute1->setVertexSize(3);
-    positionAttribute1->setAttributeType(Qt3DRender::QAttribute::VertexAttribute);
-    positionAttribute1->setBuffer(vertexBuffer1);
-    positionAttribute1->setByteStride(3 * sizeof(float));
-    positionAttribute1->setCount(2);
-
-    auto positionAttribute2 = new Qt3DRender::QAttribute();
-    positionAttribute2->setName(Qt3DRender::QAttribute::defaultPositionAttributeName());
-    positionAttribute2->setVertexBaseType(Qt3DRender::QAttribute::Float);
-    positionAttribute2->setVertexSize(3);
-    positionAttribute2->setAttributeType(Qt3DRender::QAttribute::VertexAttribute);
-    positionAttribute2->setBuffer(vertexBuffer2);
-    positionAttribute2->setByteStride(3 * sizeof(float));
-    positionAttribute2->setCount(2);
-
-    auto positionAttribute3 = new Qt3DRender::QAttribute();
-    positionAttribute3->setName(Qt3DRender::QAttribute::defaultPositionAttributeName());
-    positionAttribute3->setVertexBaseType(Qt3DRender::QAttribute::Float);
-    positionAttribute3->setVertexSize(3);
-    positionAttribute3->setAttributeType(Qt3DRender::QAttribute::VertexAttribute);
-    positionAttribute3->setBuffer(vertexBuffer3);
-    positionAttribute3->setByteStride(3 * sizeof(float));
-    positionAttribute3->setCount(2);
 
 
-    geometry1->addAttribute(positionAttribute1);
-	geometry2->addAttribute(positionAttribute2);
-	geometry3->addAttribute(positionAttribute3);
+		auto positionAttribute1 = new Qt3DRender::QAttribute();
+		positionAttribute1->setName(Qt3DRender::QAttribute::defaultPositionAttributeName());
+		positionAttribute1->setVertexBaseType(Qt3DRender::QAttribute::Float);
+		positionAttribute1->setVertexSize(3);
+		positionAttribute1->setAttributeType(Qt3DRender::QAttribute::VertexAttribute);
+		positionAttribute1->setBuffer(vertexBuffer1);
+		positionAttribute1->setByteStride(3 * sizeof(float));
+		positionAttribute1->setCount(2);
 
-    // Line renderer
-    auto lineRenderer1 = new Qt3DRender::QGeometryRenderer();
-    lineRenderer1->setGeometry(geometry1);
-    lineRenderer1->setPrimitiveType(Qt3DRender::QGeometryRenderer::Lines);
+		auto positionAttribute2 = new Qt3DRender::QAttribute();
+		positionAttribute2->setName(Qt3DRender::QAttribute::defaultPositionAttributeName());
+		positionAttribute2->setVertexBaseType(Qt3DRender::QAttribute::Float);
+		positionAttribute2->setVertexSize(3);
+		positionAttribute2->setAttributeType(Qt3DRender::QAttribute::VertexAttribute);
+		positionAttribute2->setBuffer(vertexBuffer2);
+		positionAttribute2->setByteStride(3 * sizeof(float));
+		positionAttribute2->setCount(2);
 
-    // Line renderer
-    auto lineRenderer2 = new Qt3DRender::QGeometryRenderer();
-    lineRenderer2->setGeometry(geometry2);
-    lineRenderer2->setPrimitiveType(Qt3DRender::QGeometryRenderer::Lines);
+		auto positionAttribute3 = new Qt3DRender::QAttribute();
+		positionAttribute3->setName(Qt3DRender::QAttribute::defaultPositionAttributeName());
+		positionAttribute3->setVertexBaseType(Qt3DRender::QAttribute::Float);
+		positionAttribute3->setVertexSize(3);
+		positionAttribute3->setAttributeType(Qt3DRender::QAttribute::VertexAttribute);
+		positionAttribute3->setBuffer(vertexBuffer3);
+		positionAttribute3->setByteStride(3 * sizeof(float));
+		positionAttribute3->setCount(2);
 
-    // Line renderer
-    auto lineRenderer3 = new Qt3DRender::QGeometryRenderer();
-    lineRenderer3->setGeometry(geometry3);
-    lineRenderer3->setPrimitiveType(Qt3DRender::QGeometryRenderer::Lines);
 
-    // Entity
-    auto lineEntity1 = new Qt3DCore::QEntity(rootEntity);
-    lineEntity1->addComponent(lineRenderer1);
-	auto lineEntity2 = new Qt3DCore::QEntity(rootEntity);
-	lineEntity2->addComponent(lineRenderer2);
-	auto lineEntity3 = new Qt3DCore::QEntity(rootEntity);
-	lineEntity3->addComponent(lineRenderer3);
+		geometry1->addAttribute(positionAttribute1);
+		geometry2->addAttribute(positionAttribute2);
+		geometry3->addAttribute(positionAttribute3);
 
-    // Material
-    auto material = new Qt3DExtras::QPhongMaterial(rootEntity);
-    material->setDiffuse(QColor(Qt::red));
-    lineEntity1->addComponent(material);
-	lineEntity2->addComponent(material);
-	lineEntity3->addComponent(material);
+		// Line renderer
+		auto lineRenderer1 = new Qt3DRender::QGeometryRenderer();
+		lineRenderer1->setGeometry(geometry1);
+		lineRenderer1->setPrimitiveType(Qt3DRender::QGeometryRenderer::Lines);
 
-    return lineEntity1;
+		// Line renderer
+		auto lineRenderer2 = new Qt3DRender::QGeometryRenderer();
+		lineRenderer2->setGeometry(geometry2);
+		lineRenderer2->setPrimitiveType(Qt3DRender::QGeometryRenderer::Lines);
+
+		// Line renderer
+		auto lineRenderer3 = new Qt3DRender::QGeometryRenderer();
+		lineRenderer3->setGeometry(geometry3);
+		lineRenderer3->setPrimitiveType(Qt3DRender::QGeometryRenderer::Lines);
+
+		// Entity
+		auto lineEntity1 = new Qt3DCore::QEntity(rootEntity);
+		lineEntity1->addComponent(lineRenderer1);
+		auto lineEntity2 = new Qt3DCore::QEntity(rootEntity);
+		lineEntity2->addComponent(lineRenderer2);
+		auto lineEntity3 = new Qt3DCore::QEntity(rootEntity);
+		lineEntity3->addComponent(lineRenderer3);
+
+		// Material
+		auto material = new Qt3DExtras::QPhongMaterial(rootEntity);
+		material->setDiffuse(QColor(Qt::red));
+		lineEntity1->addComponent(material);
+		lineEntity2->addComponent(material);
+		lineEntity3->addComponent(material);
+
+		meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe","clObjectLocator::createLineEntity -> OK");
+
+		return lineEntity1;
+	}
+
+	catch(exception &e)
+	{
+		meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe","clObjectLocator::createLineEntity -> " + QString(e.what()));
+		return NULL;
+	}
 }
 
 
@@ -586,7 +652,7 @@ void clObjectLocator::slotTreeClassItemPressed(QTreeWidgetItem *item, int index)
         //Class is pressed so get the objects
         if( item->parent() == NULL)
         {
-            meIceClientLogging->insertItem("50",QString(QHostInfo::localHostName()),"2UVObjectViewer.exe","clObjectLocator::slotTreeClassItemPressed -> createMapping");
+            meIceClientLogging->insertItem("50",QString(QHostInfo::localHostName()),"2UVObjectViewer.exe","clObjectLocator::slotTreeClassItemPressed -> for item: [" + QString(loClassObjectTreeItem->meUUID) + "]");
 			showLocatorMapForLocation(QString(loClassObjectTreeItem->meUUID));
 			
 			vector <std::string> loProperties;
@@ -796,7 +862,7 @@ bool clObjectLocator::addElementsToQTreeWidget(QTreeWidgetItem * paItem, vector<
 			newItem->setDatabaseActions(loItem->getDatabaseActions());
 			newItem->setDatabaseColumns(loItem->getDatabaseColumns());
 			
-			const QIcon Icon(".\\ICONS\\" + getRelatedIcon(paItem->text(0)));
+			const QIcon Icon("./ICONS/" + getRelatedIcon(paItem->text(0)));
 			newItem->setIcon(0,Icon);
 			newItem->setText(0,QString(paReturnNames[i].c_str()));
             paItem->addChild(newItem);
