@@ -19,6 +19,14 @@ clWorkstationCycles::clWorkstationCycles(clIceClientServer * paIceClientServer, 
 
 clWorkstationCycles::~clWorkstationCycles()
 {
+	/*
+	PyEval_RestoreThread( tstate ) ; // nb: this also locks the GIL
+	Py_Finalize() ;
+	*/
+	
+	PyGILState_Ensure(); // PyEval_RestoreThread(tstate); seems to work just as well
+	Py_Finalize();
+	
 	for (int i=0; i < 20; i++)
 	{
 	
@@ -39,18 +47,13 @@ bool clWorkstationCycles::getWorkstationCycles()
 		QString loReturnMessage;
 		
 		loProperties.push_back(QString("WORKSTATION_NAME").toStdString());
-		loValues.push_back(string(QString(QHostInfo::localHostName()).toUtf8()));
+		loValues.push_back(string(QString(QHostInfo::localHostName()).toStdString()));
 		loTypeValues.push_back(QString("varchar(255)").toStdString());
 		loLogExp.push_back(QString("=").toStdString());
 		
-		
-		
-		QString loStart = QString("0");
-		QString loStop = QString("0");
-		
-		
-		
-		if (!meIceClientServer->getFromTableDatbaseByProperty(loTableName,loStart,loStop,loProperties,loValues,loTypeValues,loLogExp,loReturnIds,loReturnMessage))
+		QString loStartStop = QString("0");
+
+		if (!meIceClientServer->getFromTableDatbaseByProperty(loTableName,loStartStop,loStartStop,loProperties,loValues,loTypeValues,loLogExp,loReturnIds,loReturnMessage))
 		{
 			meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe","clWorkstationCycles::getWorkstationCycles() -> " + loReturnMessage);
 			return false;
@@ -66,8 +69,16 @@ bool clWorkstationCycles::getWorkstationCycles()
 			meWorkstationCycle[i] = NULL;
 		}
 		
+		
+		// initialize Python
+		Py_Initialize() ;
+		PyEval_InitThreads() ; // nb: creates and locks the GIL
+		// NOTE: We save the current thread state, and restore it when we unload,
+		// so that we can clean up properly.
+		tstate = PyEval_SaveThread() ;
+		
 		//Set the threads
-		for (int i = 0; i < (int) loReturnIds.size(); i++)
+		for (int i = 0; i < loReturnIds.size(); i++)
 		{
 			//Starting the threads//
 			meWorkstationCycle[i] = new clWorkstationCycle(meIceClientServer, meIceClientLogging, QString(loReturnIds.at(i).c_str()), &meLock, this);
@@ -75,6 +86,7 @@ bool clWorkstationCycles::getWorkstationCycles()
 			//connect(meWorkstationCycle[i], &clWorkstationCycle::finished, meWorkstationCycle[i], &QObject::deleteLater);
 			meWorkstationCycle[i]->start();
 		}
+		
 		return true;
 	}
 	catch(...)

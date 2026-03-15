@@ -4,7 +4,6 @@
 #include <exception>
 #include <string>
 #include <iostream>
-#include <dlfcn.h>
 
 #include <QtWidgets/QMainWindow>
 #include <QtWidgets/QMdiArea>
@@ -33,17 +32,6 @@
 #include <QtWidgets/QGroupBox>
 #include <QtWidgets/QDoubleSpinBox>
 
-#ifdef WIN32
-#include <QtCore/qtalgorithms>
-#elif defined(_WIN32)
-#include <QtCore/qtalgorithms>
-#elif defined(__WIN32)
-#include <QtCore/qtalgorithms>
-#elif defined(__WIN32__)
-#include <QtCore/qtalgorithms>
-#else
-#include <QtCore/QtAlgorithms>
-#endif
 
 
 #include "clIceClientLogging.h"

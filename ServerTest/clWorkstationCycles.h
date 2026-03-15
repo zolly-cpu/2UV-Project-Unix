@@ -42,6 +42,8 @@ private:
 	//PyMutex mutex = {0};
 	QMutex meLock;
 
+	PyThreadState* tstate;
+
 };
 //! [0]
 

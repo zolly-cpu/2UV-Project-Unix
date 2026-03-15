@@ -1,4 +1,3 @@
-#define INFO_BUFFER_SIZE 32767
 #include "clWorkstationCycle.h"
 
 clWorkstationCycle::clWorkstationCycle(clIceClientServer * paIceClientServer, clIceClientLogging *paIceClientLogging, QString paObjectId, QMutex * paLock, QObject * parent)
@@ -71,7 +70,8 @@ bool clWorkstationCycle::prepareScriptingPath(const QString &fromDir, const QStr
 
 
 bool clWorkstationCycle::getWorkstationRoutineCycles(QString paObjectId)
-{	
+{
+	
 	try
 	{
 		/*****************************************
@@ -84,17 +84,20 @@ bool clWorkstationCycle::getWorkstationRoutineCycles(QString paObjectId)
 		vector<std::string> loReferenceCycleRoutine;
         QString loReturnMessageCycleRoutine;
 		bool loGetColumns = false;
-		
-		loGetColumns = meIceClientServer->getAllPropertiesFromTable(QString("CYCLE_ROUTINE"),loPropertyNameCycleRoutine,loAliasCycleRoutine,loTypeCycleRoutine,loExtraCycleRoutine,loReferenceCycleRoutine,loReturnMessageCycleRoutine);
+
+		QString loTableNameRoutine = QString("CYCLE_ROUTINE");
+
+
+		loGetColumns = meIceClientServer->getAllPropertiesFromTable(loTableNameRoutine,loPropertyNameCycleRoutine,loAliasCycleRoutine,loTypeCycleRoutine,loExtraCycleRoutine,loReferenceCycleRoutine,loReturnMessageCycleRoutine);
 		if (!loGetColumns)
 		{
-			meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe","clWorkstationCycle::getWorkstationRoutineCycles-> " + loReturnMessageCycleRoutine);		
+			meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe","clWorkstationCycle::getWorkstationRoutineCycles-> " + loReturnMessageCycleRoutine);
 			return false;
 		}
 		meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe","clWorkstationCycle::getWorkstationRoutineCycles-> " + loReturnMessageCycleRoutine);
 		
 		
-		for (int i = 0; i < (int) loPropertyNameCycleRoutine.size(); i++)
+		for (int i = 0; i < loPropertyNameCycleRoutine.size(); i++)
 		{
 			meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe","clWorkstationCycle::getWorkstationRoutineCycles-> -> Propertie name [" + QString(loPropertyNameCycleRoutine[i].c_str()) + "]");
 			clDatabaseColumn test(								QString(loPropertyNameCycleRoutine[i].c_str()),
@@ -116,18 +119,19 @@ bool clWorkstationCycle::getWorkstationRoutineCycles(QString paObjectId)
         QString loReturnMessageCycle;
 		bool loGetColumnsCycle = false;
 		
-		QString loClass = QString("CYCLES");
-		
-		loGetColumnsCycle = meIceClientServer->getAllPropertiesFromTable(loClass,loPropertyNameCycle,loAliasCycle,loTypeCycle,loExtraCycle,loReferenceCycle,loReturnMessageCycle);
+		QString loTableNameCycle = QString("CYCLES");
+
+
+		loGetColumnsCycle = meIceClientServer->getAllPropertiesFromTable(loTableNameCycle,loPropertyNameCycle,loAliasCycle,loTypeCycle,loExtraCycle,loReferenceCycle,loReturnMessageCycle);
 		if (!loGetColumnsCycle)
 		{
-			meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe","clWorkstationCycle::getWorkstationRoutineCycles-> " + loReturnMessageCycle);		
+			meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe","clWorkstationCycle::getWorkstationRoutineCycles-> " + loReturnMessageCycle);
 			return false;
 		}
 		meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe","clWorkstationCycle::getWorkstationRoutineCycles-> " + loReturnMessageCycle);
 		
 		
-		for (int i = 0; i < (int) loPropertyNameCycle.size(); i++)
+		for (int i = 0; i < loPropertyNameCycle.size(); i++)
 		{
 			meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe","clWorkstationCycle::getWorkstationRoutineCycles-> -> Propertie name [" + QString(loPropertyNameCycle[i].c_str()) + "]");
 			clDatabaseColumn test(								QString(loPropertyNameCycle[i].c_str()),
@@ -146,7 +150,7 @@ bool clWorkstationCycle::getWorkstationRoutineCycles(QString paObjectId)
 		QString loTable;
         meIceClientServer->getAllTablesFromDatabase(loTables,loMessage);
 
-        for(int i=0; i < (int) loTables.size(); i++)
+        for(int i=0; i < loTables.size(); i++)
         {
 			
             loTable = QString(loTables[i].c_str());
@@ -175,15 +179,15 @@ bool clWorkstationCycle::getWorkstationRoutineCycles(QString paObjectId)
 		loGetColumnsRoutine = meIceClientServer->getAllPropertiesFromTable(QString(loTables.at(0).c_str()),loPropertyNameRoutine,loAliasRoutine,loTypeRoutine,loExtraRoutine,loReferenceRoutine,loReturnMessageRoutine);
 		if (!loGetColumnsRoutine)
 		{
-			meIceClientLogging->insertItem("10",QString(infoBuf),"2UVServerTest.exe","clWorkstationCycle::getWorkstationRoutineCycles-> " + loReturnMessageRoutine);		
+			meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe","clWorkstationCycle::getWorkstationRoutineCycles-> " + loReturnMessageRoutine);
 			return false;
 		}
-		meIceClientLogging->insertItem("10",QString(infoBuf),"2UVServerTest.exe","clWorkstationCycle::getWorkstationRoutineCycles-> " + loReturnMessageRoutine);
+		meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe","clWorkstationCycle::getWorkstationRoutineCycles-> " + loReturnMessageRoutine);
 		
 		
 		for (int i = 0; i < loPropertyNameRoutine.size(); i++)
 		{
-			meIceClientLogging->insertItem("10",QString(infoBuf),"2UVServerTest.exe","clWorkstationCycle::getWorkstationRoutineCycles-> -> Propertie name [" + QString(loPropertyNameRoutine[i].c_str()) + "]");
+			meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe","clWorkstationCycle::getWorkstationRoutineCycles-> -> Propertie name [" + QString(loPropertyNameRoutine[i].c_str()) + "]");
 			clDatabaseColumn test(								QString(loPropertyNameRoutine[i].c_str()),
 																QString(loAliasRoutine[i].c_str()),
 																QString(loTypeRoutine[i].c_str()),
@@ -211,18 +215,15 @@ bool clWorkstationCycle::getWorkstationRoutineCycles(QString paObjectId)
 		loTypeValues.push_back(QString("uuid").toStdString());
 		loLogExp.push_back(QString("=").toStdString());
 		
-		QString loStart = QString("0");
-		QString loStop = QString("0");
-		
-		
-		
-		if (!meIceClientServer->getFromTableDatbaseByProperty(loTableName,loStart,loStop,loProperties,loValues,loTypeValues,loLogExp,loReturnIds,loReturnMessage))
+		QString loStartStop = QString("0");
+
+		if (!meIceClientServer->getFromTableDatbaseByProperty(loTableName,loStartStop,loStartStop,loProperties,loValues,loTypeValues,loLogExp,loReturnIds,loReturnMessage))
 		{
 			meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe","clWorkstationCycles::getWorkstationCycles() -> " + loReturnMessage);
 			return false;
 		}
 		else
-			meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe","clWorkstationCycles::getWorkstationCycles() -> " + loReturnMessage);		
+			meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe","clWorkstationCycles::getWorkstationCycles() -> " + loReturnMessage);
 		
 		if(loReturnIds.size() < 1)return false;
 		meCycleRoutineIds = loReturnIds;
@@ -238,12 +239,13 @@ bool clWorkstationCycle::getWorkstationRoutineCycles(QString paObjectId)
 	}
 	catch(...)
 	{
-		meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe","clParameterView::addElementsToQTreeWidgetSub -> error");			
+		meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe","clParameterView::addElementsToQTreeWidgetSub -> error");
 		return false;
 	}
 }
 void clWorkstationCycle::run()
 {
+
 	try
 	{
 		//Setting the variables//
@@ -407,7 +409,7 @@ void clWorkstationCycle::run()
     }
 }
 bool clWorkstationCycle::readCurrentRoutine()
-{		
+{
 	try
 	{
 		/*****************************************
@@ -419,17 +421,17 @@ bool clWorkstationCycle::readCurrentRoutine()
 
 		loProperties.push_back("CURRENT_ROUTINE");
 		
-		
-		
-		QString loClass = QString("CYCLES");
-		
-		if (!meIceClientServer->getFromTableDatabaseById(loClass,meObjectId,loProperties,loReturnValues,loReturnMessage))
+
+		QString loTableNameCycles = QString("CYCLES");
+
+
+		if (!meIceClientServer->getFromTableDatabaseById(loTableNameCycles,meObjectId,loProperties,loReturnValues,loReturnMessage))
 		{
 			meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe","clWorkstationCycle::readCurrentRoutine() -> " + loReturnMessage);
 			return false;
 		}
 		else
-			meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe","clWorkstationCycle::readCurrentRoutine() -> " + loReturnMessage);			
+			meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe","clWorkstationCycle::readCurrentRoutine() -> " + loReturnMessage);
 		
 		if (loReturnValues.size() < 1)
 		{
@@ -464,18 +466,15 @@ bool clWorkstationCycle::readCurrentRoutine()
 			loTypeValuesCR.push_back(QString("varchar(255)").toStdString());
 			loLogExpCR.push_back(QString("=").toStdString());
 			
-			
-			QString loStop = QString("0");
-			QString loStart = QString("0");
-			
-			
-			if (!meIceClientServer->getFromTableDatbaseByProperty(loTableNameCR,loStop,loStart,loPropertiesCR,loValuesCR,loTypeValuesCR,loLogExpCR,loReturnIdsCR,loReturnMessageCR))
+			QString loStartStop = QString("0");
+
+			if (!meIceClientServer->getFromTableDatbaseByProperty(loTableNameCR,loStartStop,loStartStop,loPropertiesCR,loValuesCR,loTypeValuesCR,loLogExpCR,loReturnIdsCR,loReturnMessageCR))
 			{
 				meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe","clWorkstationCycle::readCurrentRoutine() -> " + loReturnMessageCR);
 				return false;
 			}
 			else
-				meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe","clWorkstationCycle::readCurrentRoutine() -> " + loReturnMessageCR);		
+				meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe","clWorkstationCycle::readCurrentRoutine() -> " + loReturnMessageCR);
 			
 			if(loReturnIdsCR.size() < 1)
 			{
@@ -499,7 +498,7 @@ bool clWorkstationCycle::readCurrentRoutine()
     }
 }
 bool clWorkstationCycle::getRoutineFromCycleRoutine()
-{		
+{
 	try
 	{
 		/*****************************************
@@ -513,17 +512,16 @@ bool clWorkstationCycle::getRoutineFromCycleRoutine()
 		loPropertiesRCR.push_back("ROUTINE");
 		loPropertiesRCR.push_back("ROUTINE_CLASS");
 		
-		
-		QString loClass = QString("CYCLE_ROUTINE");
-		
-		
-		if (!meIceClientServer->getFromTableDatabaseById(loClass,meCurrentCycleRoutineUUID,loPropertiesRCR,loReturnValuesRCR,loReturnMessageRCR))
+		QString loTableNameCycleRoutine = QString("CYCLE_ROUTINE");
+
+
+		if (!meIceClientServer->getFromTableDatabaseById(loTableNameCycleRoutine,meCurrentCycleRoutineUUID,loPropertiesRCR,loReturnValuesRCR,loReturnMessageRCR))
 		{
 			meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe","clWorkstationCycle::getRoutineFromCycleRoutine() -> " + loReturnMessageRCR);
 			return false;
 		}
 		else
-			meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe","clWorkstationCycle::getRoutineFromCycleRoutine() -> " + loReturnMessageRCR);			
+			meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe","clWorkstationCycle::getRoutineFromCycleRoutine() -> " + loReturnMessageRCR);
 		
 		if (loReturnValuesRCR.size() < 1)
 		{
@@ -569,13 +567,13 @@ bool clWorkstationCycle::selectRoutine()
 
 		if (!meIceClientServer->getAllPropertiesFromTable(QString(meCurrentRoutineClass),loPropertyNamePR,loAliasPR,loTypePR,loExtraPR,loReferencePR,loReturnMessagePR))
 		{
-			meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe","clWorkstationCycle::selectRoutine()-> " + loReturnMessagePR);		
+			meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe","clWorkstationCycle::selectRoutine()-> " + loReturnMessagePR);
 			return false;
 		}
 		meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe","clWorkstationCycle::selectRoutine()-> " + loReturnMessagePR);
 		
 		meCurrentDatabaseColumnRoutine.clear();
-		for (int i = 0; i < (int) loPropertyNamePR.size(); i++)
+		for (int i = 0; i < loPropertyNamePR.size(); i++)
 		{
 			meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe","clWorkstationCycle::selectRoutine()-> Propertie name [" + QString(loPropertyNamePR[i].c_str()) + "]");
 			clDatabaseColumn test(								QString(loPropertyNamePR[i].c_str()),
@@ -599,7 +597,7 @@ bool clWorkstationCycle::selectRoutine()
 			return false;
 		}
 		else
-			meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe","clWorkstationCycle::selectRoutine() -> " + loReturnMessagePropPRWU);			
+			meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe","clWorkstationCycle::selectRoutine() -> " + loReturnMessagePropPRWU);
 		
 		if (loReturnValuesPRWU.size() < 1)
 		{
@@ -612,7 +610,7 @@ bool clWorkstationCycle::selectRoutine()
 		meCurrentRoutineArgType.clear();
 		meCurrentRoutineArgValue.clear();
 		
-		for (int i = 0; i < (int) loPropertyNamePR.size(); i++)
+		for (int i = 0; i < loPropertyNamePR.size(); i++)
 		{	
 			QString loColumnName = QString(loPropertyNamePR.at(i).c_str());
 			
@@ -653,7 +651,6 @@ bool clWorkstationCycle::selectRoutine()
 }
 bool clWorkstationCycle::performRoutine()
 {
-	
 	try
 	{
 		return true;
@@ -686,7 +683,7 @@ bool clWorkstationCycle::callRoutinePythonNoDebug()
 		meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe","clWorkstationCycle::callRoutinePythonNoDebug() -> cycle [" + meObjectId + "] has #args[" + QString::number(meCurrentRoutineArgValue.size())  + "] ...");
 		
 		
-		for(int i = 0; i < (int) meCurrentRoutineArgValue.size(); i++)
+		for(int i = 0; i < meCurrentRoutineArgValue.size(); i++)
 		{
 			byteArray[i] = QString(meCurrentRoutineArgValue.at(i)).toUtf8();
 			
@@ -728,10 +725,34 @@ bool clWorkstationCycle::callRoutinePythonNoDebug()
 		}
 		QString loTemp = QString(meCurrentRoutineSourceFile);	
         if (!performScript(QString(loTemp.replace(".py","")).toUtf8().data(),meCurrentRoutineClass.toUpper().toUtf8().data(),meCurrentRoutineReturnType.toUtf8().data(),loArg01, loArg02, loArg03, loArg04, loArg05, loArg06, loArg07, loArg08, loArg09, loArg10))
+		{
+			/*
+			if (loArg01 != NULL) delete loArg01;
+			if (loArg02 != NULL) delete loArg02;
+			if (loArg03 != NULL) delete loArg03;
+			if (loArg04 != NULL) delete loArg04;
+			if (loArg05 != NULL) delete loArg05;
+			if (loArg06 != NULL) delete loArg06;
+			if (loArg07 != NULL) delete loArg07;
+			if (loArg08 != NULL) delete loArg08;
+			if (loArg09 != NULL) delete loArg09;
+			if (loArg10 != NULL) delete loArg10;
+			*/
 			return false;
-		
+		}
 		cout << endl << "Do something with the return value" << endl;
-		
+		/*
+		if (loArg01 != NULL) delete loArg01;
+		if (loArg02 != NULL) delete loArg02;
+		if (loArg03 != NULL) delete loArg03;
+		if (loArg04 != NULL) delete loArg04;
+		if (loArg05 != NULL) delete loArg05;
+		if (loArg06 != NULL) delete loArg06;
+		if (loArg07 != NULL) delete loArg07;
+		if (loArg08 != NULL) delete loArg08;
+		if (loArg09 != NULL) delete loArg09;
+		if (loArg10 != NULL) delete loArg10;
+		*/
 		return true;
 	}
     catch(exception &e)
@@ -742,6 +763,7 @@ bool clWorkstationCycle::callRoutinePythonNoDebug()
 }
 bool clWorkstationCycle::callRoutinePythonWithDebug()
 {
+
 	try
 	{
 		
@@ -762,7 +784,7 @@ bool clWorkstationCycle::callRoutinePythonWithDebug()
 		meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe","clWorkstationCycle::callRoutinePythonNoDebug() -> cycle [" + meObjectId + "] has #args[" + QString::number(meCurrentRoutineArgValue.size())  + "] ...");
 		
 		
-		for(int i = 0; i < (int) meCurrentRoutineArgValue.size(); i++)
+		for(int i = 0; i < meCurrentRoutineArgValue.size(); i++)
 		{
 			byteArray[i] = QString(meCurrentRoutineArgValue.at(i)).toUtf8();
 			
@@ -804,11 +826,35 @@ bool clWorkstationCycle::callRoutinePythonWithDebug()
 		}
 		QString meTemp = QString(meCurrentRoutineSourceFile);
 		meTemp.replace(".py","");
-        //if (!performScriptWithDebug(meCurrentRoutineSourceFile.toUtf8().data(), meTemp.toUtf8().data(),meCurrentRoutineClass.toUpper().toUtf8().data(),meCurrentRoutineReturnType.toUtf8().data(),loArg01, loArg02, loArg03, loArg04, loArg05, loArg06, loArg07, loArg08, loArg09, loArg10))
-		//	return false;
-		
+        if (!performScriptWithDebug(meCurrentRoutineSourceFile.toUtf8().data(), meTemp.toUtf8().data(),meCurrentRoutineClass.toUpper().toUtf8().data(),meCurrentRoutineReturnType.toUtf8().data(),loArg01, loArg02, loArg03, loArg04, loArg05, loArg06, loArg07, loArg08, loArg09, loArg10))
+		{
+			/*
+			if (loArg01 != NULL) delete loArg01;
+			if (loArg02 != NULL) delete loArg02;
+			if (loArg03 != NULL) delete loArg03;
+			if (loArg04 != NULL) delete loArg04;
+			if (loArg05 != NULL) delete loArg05;
+			if (loArg06 != NULL) delete loArg06;
+			if (loArg07 != NULL) delete loArg07;
+			if (loArg08 != NULL) delete loArg08;
+			if (loArg09 != NULL) delete loArg09;
+			if (loArg10 != NULL) delete loArg10;			
+			*/
+			return false;
+		}
 		cout << endl << "Do something with the return value" << endl;
-		
+		/*
+		if (loArg01 != NULL) delete loArg01;
+		if (loArg02 != NULL) delete loArg02;
+		if (loArg03 != NULL) delete loArg03;
+		if (loArg04 != NULL) delete loArg04;
+		if (loArg05 != NULL) delete loArg05;
+		if (loArg06 != NULL) delete loArg06;
+		if (loArg07 != NULL) delete loArg07;
+		if (loArg08 != NULL) delete loArg08;
+		if (loArg09 != NULL) delete loArg09;
+		if (loArg10 != NULL) delete loArg10;		
+		*/
 		return true;
 	}
     catch(exception &e)
@@ -821,27 +867,21 @@ bool clWorkstationCycle::callRoutineDLL()
 {
 	try
 	{
-		cout << endl << "clWorkstationCycle::callRoutineDLL()" << endl;
-		QString loLibraryDir = QString("./Methods/");
-		
-		
-		//HMODULE loLibraryLib;
-		
-		////////////////////////Loading the library///////////////////////////////////////////////////////////////////
-		std::string loLibraryName = std::string(QString(loLibraryDir + meCurrentRoutineSourceFile).toStdString());
-
 		clMethodCall * loMethodCall;
 		CreateModule loCreateModule;
+
+		std::string loLibraryName = std::string(QString(QString("./Methods/") + meCurrentRoutineSourceFile).toStdString());
+		////////////////////////Loading the library///////////////////////////////////////////////////////////////////
 
 		void * loLibraryLib = dlopen(loLibraryName.c_str(), RTLD_NOW);
 
 		if (!loLibraryLib) {
-			meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe","clClassLoader::callObjectDLL -> Library [" + QString(loLibraryName.c_str()) + "] not found");
+			meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe","clWorkstationCycle::callRoutineDLL -> Library [" + QString(loLibraryName.c_str()) + "] not found");
 			return NULL;
 		}
 		else
 		{
-			meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe","clClassLoader::callObjectDLL -> Library [" + QString(loLibraryName.c_str()) + "] found");
+			meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe","clWorkstationCycle::callRoutineDLL -> Library [" + QString(loLibraryName.c_str()) + "] found");
 
 
 			dlerror(); /* Clear any existing error */
@@ -856,26 +896,34 @@ bool clWorkstationCycle::callRoutineDLL()
 			if (loMethodCall->createPluginClass(meIceClientServer, meIceClientLogging))
 			{
 				meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe","createPluginClass called");
-				loMethodCall->createPluginClass(meIceClientServer, meIceClientLogging);
+
+
 				loMethodCall->doMethod(meCurrentRoutineArgType, meCurrentRoutineArgValue);
 				meResultFromFunction = loMethodCall->GetReturnParameters();
+				dlclose(loLibraryLib);
 			}
 			else
 			{
 				meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe","createPluginClass not called");
 			}
+
 		}
-		dlclose(loLibraryLib);
+
 		return true;
 	}
-    catch(exception &e)
-    {	
-        meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe","clWorkstationCycle::callRoutineDLL() -> " + QString(e.what()));
+	catch(exception &e)
+	{
+		meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe","clWorkstationCycle::callRoutineDLL -> " + QString(e.what()));
 		return false;
-    }
+	}
+
+
+
+
 }
 bool clWorkstationCycle::chooseAndSetNextRoutine()
 {
+
 	try
 	{
 		/*****************************************
@@ -889,16 +937,16 @@ bool clWorkstationCycle::chooseAndSetNextRoutine()
 		loProperties.push_back("CHILDREN");
 		loProperties.push_back("CHILD_CLASS");
 		
-		
-		QString loClass = QString("CYCLE_ROUTINE");
-		
-		if (!meIceClientServer->getFromTableDatabaseById(loClass,meCurrentCycleRoutineUUID,loProperties,loReturnValues,loReturnMessage))
+
+		QString loTableNameCycleRountine = QString("CYCLE_ROUTINE");
+
+		if (!meIceClientServer->getFromTableDatabaseById(loTableNameCycleRountine,meCurrentCycleRoutineUUID,loProperties,loReturnValues,loReturnMessage))
 		{
 			meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe","clWorkstationCycle::chooseAndSetNextRoutine() -> " + loReturnMessage);
 			return false;
 		}
 		else
-			meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe","clWorkstationCycle::chooseAndSetNextRoutine() -> " + loReturnMessage);			
+			meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe","clWorkstationCycle::chooseAndSetNextRoutine() -> " + loReturnMessage);
 		
 		if (loReturnValues.size() < 1)
 		{
@@ -923,10 +971,9 @@ bool clWorkstationCycle::chooseAndSetNextRoutine()
 			loTypeValue.push_back("uuid");
 
 
-			QString loClass = QString("CYCLES");
+			QString loTableNameCycles = QString("CYCLES");
 
-
-			if (!meIceClientServer->updateIntoTableDatabase(	loClass,
+			if (!meIceClientServer->updateIntoTableDatabase(	loTableNameCycles,
 																meObjectId,
 																loColumns,
 																loValue,
@@ -942,7 +989,7 @@ bool clWorkstationCycle::chooseAndSetNextRoutine()
 		//Error ending pos empty UUID
 		else if ( loChildren.toUpper().compare(QString("")) == 0 && loChildClass.toUpper().compare(QString("CYCLES")) != 0)
 		{
-			meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe","clWorkstationCycle::chooseAndSetNextRoutine() -> No next routine can be selected for CYCLE_ROUTINE with UUID [" + meCurrentCycleRoutineUUID + "]");	
+			meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe","clWorkstationCycle::chooseAndSetNextRoutine() -> No next routine can be selected for CYCLE_ROUTINE with UUID [" + meCurrentCycleRoutineUUID + "]");
 			return false;
 		}
 		//Select child routine
@@ -961,9 +1008,9 @@ bool clWorkstationCycle::chooseAndSetNextRoutine()
 				loTypeValue.push_back("uuid");
 
 
-				QString loClass = QString("CYCLES");
+				QString loTableNameCycles = QString("CYCLES");
 
-				if (!meIceClientServer->updateIntoTableDatabase(	loClass,
+				if (!meIceClientServer->updateIntoTableDatabase(	loTableNameCycles,
 																	meObjectId,
 																	loColumns,
 																	loValue,
@@ -979,7 +1026,7 @@ bool clWorkstationCycle::chooseAndSetNextRoutine()
 			}
 			else
 			{
-				meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe","clWorkstationCycle::chooseAndSetNextRoutine() -> Selected routine is out of range for children of CYCLE_ROUTINE with UUID [" + meCurrentCycleRoutineUUID + "]" + " and return value [" + QString::number(meResultFromFunction) + "]");	
+				meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe","clWorkstationCycle::chooseAndSetNextRoutine() -> Selected routine is out of range for children of CYCLE_ROUTINE with UUID [" + meCurrentCycleRoutineUUID + "]" + " and return value [" + QString::number(meResultFromFunction) + "]");
 				return false;				
 			}
 			
@@ -995,40 +1042,40 @@ bool clWorkstationCycle::chooseAndSetNextRoutine()
 }
 bool clWorkstationCycle::performScript(char * paScriptName, char * paScriptClass, char * paScriptMethod, char *paArg01, char *paArg02, char *paArg03, char *paArg04, char *paArg05, char *paArg06, char *paArg07, char *paArg08, char *paArg09, char *paArg10)
 {
+		PyGILState_STATE state;
+	
+		
         try
         {
 			meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe","clWorkstationCycle::performScript-> cycle [" + meObjectId + "] initialising python");
-            PyObject *pName, *pModule, *pDict, *pClass, *pInstance, *pValue;
-            
 			meLock->lock();
-			/*
-			PyErr_Clear();
-			*/
-			if (!Py_IsInitialized())
-			{ 
-				Py_Initialize();
-				PyRun_SimpleString("import sys");
-				meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe","clWorkstationCycle::performScript-> cycle [" + meObjectId + "] python initialised new");
-			}			
 			
-			QString loObjectPath = QString("sys.path.append(\"./" + meObjectId + QString("/\")"));
+			state = PyGILState_Ensure();
+
+			PyRun_SimpleString("import sys");
+			
+			PyObject *pName, *pModule, *pDict, *pClass, *pInstance, *pValue;
+
+			QString loObjectPath = QString("sys.path.append('./SCRIPTS/')");
+			//QString loObjectPath = QString("sys.path.append('./" + meObjectId + QString("/')"));
 			QByteArray loObjectPathTemp = loObjectPath.toLocal8Bit();
-			PyRun_SimpleString(loObjectPathTemp.data());			
+			PyRun_SimpleString(loObjectPathTemp.data());
 			meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe","clWorkstationCycle::performScript-> cycle [" + meObjectId + "] path imported -> " + loObjectPath);
 			
-			loObjectPath = QString("sys.path.append(\"./") + meObjectId + QString("/Lib/\")");
+			loObjectPath = QString("sys.path.append('./SCRIPTS/Lib/')");
+			//loObjectPath = QString("sys.path.append('./") + meObjectId + QString("/Lib/')");
 			loObjectPathTemp = loObjectPath.toLocal8Bit();			
 			PyRun_SimpleString(loObjectPathTemp.data());
 			meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe","clWorkstationCycle::performScript-> cycle [" + meObjectId + "] libs imported -> " + loObjectPath);
 			
             pName = PyUnicode_FromString(paScriptName);
+			meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe","clWorkstationCycle::performScript-> python pName created for object [" + meObjectId + "]");
             pModule = PyImport_Import(pName);
+			meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe","clWorkstationCycle::performScript-> python pModule created for object [" + meObjectId + "]");
             pDict = PyModule_GetDict(pModule);
-            meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe","clWorkstationCycle::performScript-> python module created");
-			
+            meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe","clWorkstationCycle::performScript-> python pDict created for object [" + meObjectId + "]");
             pClass = PyDict_GetItemString(pDict, paScriptClass);
-			
-			meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe","clWorkstationCycle::performScript-> python initialised2");
+			meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe","clWorkstationCycle::performScript-> python pClass created for object [" + meObjectId + "]");
 
             // Create an instance of the class
 
@@ -1036,7 +1083,7 @@ bool clWorkstationCycle::performScript(char * paScriptName, char * paScriptClass
             {
                 pInstance = PyObject_CallObject(pClass, NULL);
             }
-			meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe","clWorkstationCycle::performScript-> python initialised1");
+			meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe","clWorkstationCycle::performScript-> python pInstance created for object [" + meObjectId + "]");
 
             switch (meCurrentRoutineArgValue.size())
             {
@@ -1087,45 +1134,234 @@ bool clWorkstationCycle::performScript(char * paScriptName, char * paScriptClass
                         pValue = PyObject_CallMethod(pInstance, paScriptMethod, NULL);
                         break;
             }
-
+			meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe",QString("clWorkstationCycle::performScript-> python Function [" + QString(paScriptClass) + "] called for object [" + meObjectId + "]"));
+			
             if (pValue != NULL)
             {
 				meResultFromFunction = PyFloat_AsDouble(pValue);
                 printf("Return of call : %d\n", (int) meResultFromFunction);
-				if (pValue != NULL)Py_DECREF(pValue);
-				/*
-                if (pInstance != NULL)Py_DECREF(pInstance);
-				if (pClass != NULL)Py_DECREF(pClass);
-				if (pDict != NULL)Py_DECREF(pDict);
-				if (pModule != NULL)Py_DECREF(pModule);
-				if (pName != NULL)Py_DECREF(pName);
-				*/
             }
             else
             {
                 PyErr_Print();
 				meResultFromFunction = -1;
-				printf("Return of call : %d\n", (int) meResultFromFunction);			
+				printf("Return of call : %d\n", (int) meResultFromFunction);
+				PyErr_Clear();
+				PyRun_SimpleString("import gc");
+				PyRun_SimpleString("gc.collect()");				
+				
+				if (pInstance != NULL) Py_DECREF(pInstance);
+				//if (pClass != NULL) Py_DECREF(pClass);
+				//if (pDict != NULL) Py_DECREF(pDict);
+				if (pModule != NULL) Py_DECREF(pModule);
+				if (pName != NULL) Py_DECREF(pName);				
+				
+				if (!PyGC_IsEnabled()) PyGC_Enable();
+				PyGC_Collect();
+				PyGILState_Release(state);
+				meLock->unlock();		
+				
 				return false;
             }
 			
+
+			
+			meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe",QString("clWorkstationCycle::performScript-> python Objects cleaned for object [" + meObjectId + "]"));
 			PyErr_Clear();
-			
+			PyRun_SimpleString("import gc");
+			PyRun_SimpleString("gc.collect()");
+
+
+			//if (pValue != NULL) Py_DECREF(pValue);
+			if (pInstance != NULL) Py_DECREF(pInstance);
+			//if (pClass != NULL) Py_DECREF(pClass);
+			//if (pDict != NULL) Py_DECREF(pDict);
+			if (pModule != NULL) Py_DECREF(pModule);
+			if (pName != NULL) Py_DECREF(pName);				
+			if (!PyGC_IsEnabled()) PyGC_Enable();
+			PyGC_Collect();			
+			PyGILState_Release(state);
 			meLock->unlock();
-			
-			
-			//if (pInstance != NULL)Py_DECREF(pInstance);
-			//PyErr_Clear();
-			
+
             return true;
         }
         catch(exception &e)
         {
             meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe","clWorkstationCycle::performScript() -> " + QString(e.what()));
+			PyGILState_Release(state);
 			meLock->unlock();
             return false;
         }
 }
 
+bool clWorkstationCycle::performScriptWithDebug(char * paScriptNameWithExtension, char * paScriptName, char * paScriptClass, char * paScriptMethod, char *paArg01, char *paArg02, char *paArg03, char *paArg04, char *paArg05, char *paArg06, char *paArg07, char *paArg08, char *paArg09, char *paArg10)
+{
+		PyGILState_STATE state;		
+        try
+        {
+			/*
+            STARTUPINFO startupInfo = { 0 };
+            PROCESS_INFORMATION processInformation = { 0 };
+            startupInfo.cb = sizeof(startupInfo);
+			bool loSucces = false;
+			
+			
+			
+			meLock->lock();
+			
+			
+            //loSucces = CreateProcess(NULL,const_cast<char *>(("python -c \"import winpdb;winpdb.main()\" " + QString(meCurrentRoutineSourceFile).toStdString()).c_str()), NULL, NULL, FALSE, 0, NULL,NULL, &startupInfo, &processInformation);
+			loSucces = CreateProcess(NULL,const_cast<char *>((".\\THIRD_PARTY\\HapDebuggerBin\\HapDebugger.exe " + QString(".\\" + meObjectId + "\\" + meCurrentRoutineSourceFile).toStdString()).c_str()), NULL, NULL, FALSE, 0, NULL,NULL, &startupInfo, &processInformation);
+			
+			
+			if (!loSucces)
+			{
+				cout << endl << "No success with the function " << endl;
+			}
+			else
+			{
+				WaitForSingleObject( processInformation.hProcess, INFINITE );
+				CloseHandle( processInformation.hProcess );
+				CloseHandle( processInformation.hThread );
+			}
+
+			
+			
+			state = PyGILState_Ensure();
+
+			PyRun_SimpleString("import sys");
+			
+			PyObject *pName, *pModule, *pDict, *pClass, *pInstance, *pValue;		
+			
+			QString loObjectPath = QString("sys.path.append(\"./" + meObjectId + QString("/\")"));
+			QByteArray loObjectPathTemp = loObjectPath.toLocal8Bit();
+			PyRun_SimpleString(loObjectPathTemp.data());			
+			meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe","clWorkstationCycle::performScriptWithDebug-> cycle [" + meObjectId + "] path imported -> " + loObjectPath);
+			
+			loObjectPath = QString("sys.path.append(\"./") + meObjectId + QString("/Lib/\")");
+			loObjectPathTemp = loObjectPath.toLocal8Bit();			
+			PyRun_SimpleString(loObjectPathTemp.data());
+			meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe","clWorkstationCycle::performScriptWithDebug-> cycle [" + meObjectId + "] libs imported -> " + loObjectPath);
+
+            pName = PyUnicode_FromString(paScriptName);
+            pModule = PyImport_Import(pName);
+            pDict = PyModule_GetDict(pModule);
+            pClass = PyDict_GetItemString(pDict, paScriptClass);
+
+            // Create an instance of the class
+
+            if (PyCallable_Check(pClass))
+            {
+                pInstance = PyObject_CallObject(pClass, NULL);
+            }
+
+            switch (meCurrentRoutineArgValue.size())
+            {
+                    case 0:
+                        pValue = PyObject_CallMethod(pInstance, paScriptMethod, NULL);
+                        break;
+                    case 1:
+                        pValue = PyObject_CallMethod(pInstance,
+                        paScriptMethod, "(s)", paArg01);
+                        break;
+                    case 2:
+                        pValue = PyObject_CallMethod(pInstance,
+                        paScriptMethod, "(ss)", paArg01, paArg02);
+                        break;
+                    case 3:
+                        pValue = PyObject_CallMethod(pInstance,
+                        paScriptMethod, "(sss)", paArg01, paArg02, paArg03);
+                        break;
+                    case 4:
+                        pValue = PyObject_CallMethod(pInstance,
+                        paScriptMethod, "(ssss)", paArg01, paArg02, paArg03,paArg04);
+                        break;
+                    case 5:
+                        pValue = PyObject_CallMethod(pInstance,
+                        paScriptMethod, "(sssss)", paArg01, paArg02, paArg03,paArg04,paArg05);
+                        break;
+                    case 6:
+                        pValue = PyObject_CallMethod(pInstance,
+                        paScriptMethod, "(ssssss)", paArg01, paArg02, paArg03,paArg04,paArg05,paArg06);
+                        break;
+                    case 7:
+                        pValue = PyObject_CallMethod(pInstance,
+                        paScriptMethod, "(sssssss)", paArg01, paArg02, paArg03,paArg04,paArg05,paArg06,paArg07);
+                        break;
+                    case 8:
+                        pValue = PyObject_CallMethod(pInstance,
+                        paScriptMethod, "(ssssssss)", paArg01, paArg02, paArg03,paArg04,paArg05,paArg06,paArg07,paArg08);
+                        break;
+                    case 9:
+                        pValue = PyObject_CallMethod(pInstance,
+                        paScriptMethod, "(sssssssss)", paArg01, paArg02, paArg03,paArg04,paArg05,paArg06,paArg07,paArg08,paArg09);
+                        break;
+                    case 10:
+                        pValue = PyObject_CallMethod(pInstance,
+                        paScriptMethod, "(ssssssssss)", paArg01, paArg02, paArg03,paArg04,paArg05,paArg06,paArg07,paArg08,paArg09,paArg10);
+                        break;
+                    default:
+                        pValue = PyObject_CallMethod(pInstance, paScriptMethod, NULL);
+                        break;
+            }
+			meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe",QString("clWorkstationCycle::performScriptWithDebug-> python Function [" + QString(paScriptClass) + "] called for object [" + meObjectId + "]"));
+			
+            if (pValue != NULL)
+            {
+				meResultFromFunction = PyFloat_AsDouble(pValue);
+                printf("Return of call : %d\n", (int) meResultFromFunction);
+            }
+            else
+            {
+                PyErr_Print();
+				meResultFromFunction = -1;
+				printf("Return of call : %d\n", (int) meResultFromFunction);
+				PyErr_Clear();
+				PyRun_SimpleString("import gc");
+				PyRun_SimpleString("gc.collect()");				
+				
+				if (pInstance != NULL) Py_DECREF(pInstance);
+				//if (pClass != NULL) Py_DECREF(pClass);
+				//if (pDict != NULL) Py_DECREF(pDict);
+				if (pModule != NULL) Py_DECREF(pModule);
+				if (pName != NULL) Py_DECREF(pName);				
+				
+				if (!PyGC_IsEnabled()) PyGC_Enable();
+				PyGC_Collect();
+				PyGILState_Release(state);
+				meLock->unlock();		
+				
+				return false;
+            }
+			
+
+			
+			meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe",QString("clWorkstationCycle::performScriptWithDebug-> python Objects cleaned for object [" + meObjectId + "]"));
+			PyErr_Clear();
+			PyRun_SimpleString("import gc");
+			PyRun_SimpleString("gc.collect()");
+
+
+			//if (pValue != NULL) Py_DECREF(pValue);
+			if (pInstance != NULL) Py_DECREF(pInstance);
+			//if (pClass != NULL) Py_DECREF(pClass);
+			//if (pDict != NULL) Py_DECREF(pDict);
+			if (pModule != NULL) Py_DECREF(pModule);
+			if (pName != NULL) Py_DECREF(pName);				
+			if (!PyGC_IsEnabled()) PyGC_Enable();
+			PyGC_Collect();			
+			PyGILState_Release(state);
+			meLock->unlock();
+*/
+            return true;
+        }
+        catch(exception &e)
+        {
+            meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe","clWorkstationCycle::performScriptWithDebug() -> " + QString(e.what()));
+			PyGILState_Release(state);
+			meLock->unlock();
+            return false;
+        }
+}
 
 

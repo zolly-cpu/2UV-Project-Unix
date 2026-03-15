@@ -10,18 +10,6 @@
 #include <string>
 #include <dlfcn.h>
 
-#ifdef WIN32
-#include <windows.h>
-#elif defined(_WIN32)
-#include <windows.h>
-#elif defined(__WIN32)
-#include <windows.h>
-#elif defined(__WIN32__)
-#include <windows.h>
-#else
-
-#endif
-
 
 #include <QtCore/QThread>
 #include <QtCore/QMutex>
@@ -42,7 +30,6 @@
 #include <QtCore/QDebug>
 #include <QtNetwork/QTcpServer>
 #include <QtNetwork/QTcpSocket>
-#include <QtNetwork/QHostInfo>
 
 #include "clDatabaseColumn.h"
 #include "clIceClientLogging.h"
@@ -51,7 +38,12 @@
 #include "clMethodCallHeader.h"
 
 
-
+#define pyscope() \
+    PyGILState_STATE gstate = PyGILState_Ensure(); \
+    util::scope_guard sggstate([&]() \
+    { \
+        PyGILState_Release(gstate); \
+    })
 
 
 using namespace std;
@@ -73,6 +65,7 @@ signals:
 private:
 	bool getWorkstationRoutineCycles(QString paObjectId);
 	bool performScript(char * paScriptName, char * paScriptClass, char * paScriptMethod, char *paArg01, char *paArg02, char *paArg03, char *paArg04, char *paArg05, char *paArg06, char *paArg07, char *paArg08, char *paArg09, char *paArg10);
+	bool performScriptWithDebug(char * paScriptNameWithExtention, char * paScriptName, char * paScriptClass, char * paScriptMethod, char *paArg01, char *paArg02, char *paArg03, char *paArg04, char *paArg05, char *paArg06, char *paArg07, char *paArg08, char *paArg09, char *paArg10);
 	
 	bool readCurrentRoutine();
 	bool getRoutineFromCycleRoutine();
@@ -86,7 +79,7 @@ private:
 	
 	clIceClientLogging * meIceClientLogging;
 	clIceClientServer * meIceClientServer;
-	
+	PyThreadState* pThreadState;
 	
 	enum Choice
 	{
