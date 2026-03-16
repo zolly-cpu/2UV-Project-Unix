@@ -57,15 +57,23 @@ void clCycleView::initializeUI()
 {
 	try
 	{
-		
-		
+
 		layout = new QGridLayout;
-		setLayout(layout);
-		/*
+
+
+		meMainLayout = new QHBoxLayout;
+		//Create a widget and set its layout as your new layout created above
+		viewport = new QWidget;
+		viewport->setLayout(layout);
+
+		//Add the viewport to the scroll area
 		scrollArea = new QScrollArea;
-		scrollArea->setWidget(this);
-		layout->addWidget(scrollArea);
-		*/
+		scrollArea->setWidgetResizable (true);
+		scrollArea->setWidget(viewport);
+
+		meMainLayout->addWidget(scrollArea);
+		this->setLayout(meMainLayout);
+
 		//Initialize elements
         for(int i = 0; i < 20; i++)
         {
@@ -205,7 +213,12 @@ void clCycleView::initializeUI()
 		layout->addWidget(meButtons[1], 21, 2);
 		layout->addWidget(meButtons[2], 21, 3);
 		layout->addWidget(meButtons[3], 21, 4);
-		
+
+
+
+
+
+
 	}
     catch(exception &e)
     {		

@@ -1,4 +1,4 @@
-#ifndef CLCYCLEVIEW_H
+	#ifndef CLCYCLEVIEW_H
 #define CLCYCLEVIEW_H
 
 #include <exception>
@@ -83,19 +83,12 @@ private:
 	QLabel *meLabelsGeneral[NumButtons];
     QPushButton *meButtons[NumButtons];
 	QDoubleSpinBox *meSpinBox[NumButtons];
-	
-	QGridLayout *layout;
+public:
+	QHBoxLayout *meMainLayout;
+	QWidget *viewport;
 	QScrollArea *scrollArea;
-	
+	QGridLayout *layout;
 	QTimer * meTimer;
-	
-	/*
-		//Add the viewport to the scroll area
-	scrollArea = new QScrollArea;
-	scrollArea->setWidget(viewport);
-	
-    meMainLayout->addWidget(scrollArea);
-	*/
 };
 
 #endif
