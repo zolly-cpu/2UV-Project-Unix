@@ -1647,11 +1647,20 @@ bool clParameterView::callRoutinePythonNoDebug(QString paObjectUUID, QString paC
 	try
 	{
 		char * loArg01 = NULL;
+		char * loArg02 = NULL;
+		char * loArg03 = NULL;
+		char * loArg04 = NULL;
+		char * loArg05 = NULL;
+		char * loArg06 = NULL;
+		char * loArg07 = NULL;
+		char * loArg08 = NULL;
+		char * loArg09 = NULL;
+		char * loArg10 = NULL;		
 		QByteArray byteArray = paObjectUUID.toUtf8();
 		loArg01 = byteArray.data();
 
 		QString loTemp = paCurrentMethodSourceFile;	
-        if (!performScript(QString(loTemp.replace(".py","")).toUtf8().data(),paClass.toUpper().toUtf8().data(),paMethod.toUtf8().data(),loArg01))
+        if (!performScript(QString(loTemp.replace(".py","")).toUtf8().data(),paClass.toUpper().toUtf8().data(),paMethod.toUtf8().data(),loArg01,loArg02,loArg03,loArg04,loArg05,loArg06,loArg07,loArg08,loArg09,loArg10,meArgCountScript))
 			return false;
 		
 		cout << endl << "Do something with the return value" << endl;
@@ -1687,28 +1696,42 @@ bool clParameterView::callRoutinePythonWithDebug(QString paObjectUUID, QString p
 		return false;
     }
 }
-bool clParameterView::performScript(char * paScriptName, char * paScriptClass, char * paScriptMethod, char *paArg01)
+bool clParameterView::performScript(char * paScriptName, char * paScriptClass, char * paScriptMethod, char *paArg01, char *paArg02, char *paArg03, char *paArg04, char *paArg05, char *paArg06, char *paArg07, char *paArg08, char *paArg09, char *paArg10, int paArgCount)
 {
+		PyGILState_STATE state;
+	
+		
         try
         {
-            PyObject *pName, *pModule, *pDict, *pClass, *pInstance, *pValue;
-            
+			meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe","clParameterView::performScript-> cycle [" + meObjectId + "] initialising python");
+			meLock->lock();
+			
+			state = PyGILState_Ensure();
 
-			/*
-			PyErr_Clear();
-			*/
-            Py_Initialize();
-			
 			PyRun_SimpleString("import sys");
-			PyRun_SimpleString("sys.path.append(\"./SCRIPTS/\")");			
 			
+			PyObject *pName, *pModule, *pDict, *pClass, *pInstance, *pValue;
+
+			QString loObjectPath = QString("sys.path.append('./SCRIPTS/')");
+			//QString loObjectPath = QString("sys.path.append('./" + meObjectId + QString("/')"));
+			QByteArray loObjectPathTemp = loObjectPath.toLocal8Bit();
+			PyRun_SimpleString(loObjectPathTemp.data());
+			meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe","clWorkstationCycle::performScript-> cycle [" + meObjectId + "] path imported -> " + loObjectPath);
+			
+			loObjectPath = QString("sys.path.append('./SCRIPTS/Lib/')");
+			//loObjectPath = QString("sys.path.append('./") + meObjectId + QString("/Lib/')");
+			loObjectPathTemp = loObjectPath.toLocal8Bit();			
+			PyRun_SimpleString(loObjectPathTemp.data());
+			meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe","clWorkstationCycle::performScript-> cycle [" + meObjectId + "] libs imported -> " + loObjectPath);
 			
             pName = PyUnicode_FromString(paScriptName);
+			meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe","clWorkstationCycle::performScript-> python pName created for object [" + meObjectId + "]");
             pModule = PyImport_Import(pName);
+			meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe","clWorkstationCycle::performScript-> python pModule created for object [" + meObjectId + "]");
             pDict = PyModule_GetDict(pModule);
-            // Build the name of a callable class
-
+            meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe","clWorkstationCycle::performScript-> python pDict created for object [" + meObjectId + "]");
             pClass = PyDict_GetItemString(pDict, paScriptClass);
+			meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe","clWorkstationCycle::performScript-> python pClass created for object [" + meObjectId + "]");
 
             // Create an instance of the class
 
@@ -1716,105 +1739,169 @@ bool clParameterView::performScript(char * paScriptName, char * paScriptClass, c
             {
                 pInstance = PyObject_CallObject(pClass, NULL);
             }
+			meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe","clWorkstationCycle::performScript-> python pInstance created for object [" + meObjectId + "]");
 
-			pValue = PyObject_CallMethod(pInstance, paScriptMethod, "(s)", paArg01);
-
-
+            switch (paArgCount)
+            {
+                    case 0:
+                        pValue = PyObject_CallMethod(pInstance, paScriptMethod, NULL);
+                        break;
+                    case 1:
+                        pValue = PyObject_CallMethod(pInstance,
+                        paScriptMethod, "(s)", paArg01);
+                        break;
+                    case 2:
+                        pValue = PyObject_CallMethod(pInstance,
+                        paScriptMethod, "(ss)", paArg01, paArg02);
+                        break;
+                    case 3:
+                        pValue = PyObject_CallMethod(pInstance,
+                        paScriptMethod, "(sss)", paArg01, paArg02, paArg03);
+                        break;
+                    case 4:
+                        pValue = PyObject_CallMethod(pInstance,
+                        paScriptMethod, "(ssss)", paArg01, paArg02, paArg03,paArg04);
+                        break;
+                    case 5:
+                        pValue = PyObject_CallMethod(pInstance,
+                        paScriptMethod, "(sssss)", paArg01, paArg02, paArg03,paArg04,paArg05);
+                        break;
+                    case 6:
+                        pValue = PyObject_CallMethod(pInstance,
+                        paScriptMethod, "(ssssss)", paArg01, paArg02, paArg03,paArg04,paArg05,paArg06);
+                        break;
+                    case 7:
+                        pValue = PyObject_CallMethod(pInstance,
+                        paScriptMethod, "(sssssss)", paArg01, paArg02, paArg03,paArg04,paArg05,paArg06,paArg07);
+                        break;
+                    case 8:
+                        pValue = PyObject_CallMethod(pInstance,
+                        paScriptMethod, "(ssssssss)", paArg01, paArg02, paArg03,paArg04,paArg05,paArg06,paArg07,paArg08);
+                        break;
+                    case 9:
+                        pValue = PyObject_CallMethod(pInstance,
+                        paScriptMethod, "(sssssssss)", paArg01, paArg02, paArg03,paArg04,paArg05,paArg06,paArg07,paArg08,paArg09);
+                        break;
+                    case 10:
+                        pValue = PyObject_CallMethod(pInstance,
+                        paScriptMethod, "(ssssssssss)", paArg01, paArg02, paArg03,paArg04,paArg05,paArg06,paArg07,paArg08,paArg09,paArg10);
+                        break;
+                    default:
+                        pValue = PyObject_CallMethod(pInstance, paScriptMethod, NULL);
+                        break;
+            }
+			meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe",QString("clWorkstationCycle::performScript-> python Function [" + QString(paScriptClass) + "] called for object [" + meObjectId + "]"));
+			
             if (pValue != NULL)
             {
-				meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe","clParameterView::callRoutineDLL() -> Return value of script [" + QString(paScriptName) + "]" + "is ->" + QString::number(PyFloat_AsDouble(pValue)));
-				if (pValue != NULL)Py_DECREF(pValue);
-				/*
-                if (pInstance != NULL)Py_DECREF(pInstance);
-				if (pClass != NULL)Py_DECREF(pClass);
-				if (pDict != NULL)Py_DECREF(pDict);
-				if (pModule != NULL)Py_DECREF(pModule);
-				if (pName != NULL)Py_DECREF(pName);
-				*/
+				meResultFromFunction = PyFloat_AsDouble(pValue);
+                printf("Return of call : %d\n", (int) meResultFromFunction);
             }
             else
             {
                 PyErr_Print();
-				meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe","clParameterView::callRoutineDLL() -> Return value of script [" + QString(paScriptName) + "]" + "is -> -1");
+				meResultFromFunction = -1;
+				printf("Return of call : %d\n", (int) meResultFromFunction);
+				PyErr_Clear();
+				PyRun_SimpleString("import gc");
+				PyRun_SimpleString("gc.collect()");				
+				
+				if (pInstance != NULL) Py_DECREF(pInstance);
+				//if (pClass != NULL) Py_DECREF(pClass);
+				//if (pDict != NULL) Py_DECREF(pDict);
+				if (pModule != NULL) Py_DECREF(pModule);
+				if (pName != NULL) Py_DECREF(pName);				
+				
+				if (!PyGC_IsEnabled()) PyGC_Enable();
+				PyGC_Collect();
+				PyGILState_Release(state);
+				meLock->unlock();		
+				
 				return false;
             }
 			
-			PyErr_Clear();
-			//if (pInstance != NULL)Py_DECREF(pInstance);
-			PyErr_Clear();
+
 			
+			meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe",QString("clWorkstationCycle::performScript-> python Objects cleaned for object [" + meObjectId + "]"));
+			PyErr_Clear();
+			PyRun_SimpleString("import gc");
+			PyRun_SimpleString("gc.collect()");
+
+
+			//if (pValue != NULL) Py_DECREF(pValue);
+			if (pInstance != NULL) Py_DECREF(pInstance);
+			//if (pClass != NULL) Py_DECREF(pClass);
+			//if (pDict != NULL) Py_DECREF(pDict);
+			if (pModule != NULL) Py_DECREF(pModule);
+			if (pName != NULL) Py_DECREF(pName);				
+			if (!PyGC_IsEnabled()) PyGC_Enable();
+			PyGC_Collect();			
+			PyGILState_Release(state);
+			meLock->unlock();
+
             return true;
         }
         catch(exception &e)
         {
             meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe","clParameterView::performScript() -> " + QString(e.what()));
+			PyGILState_Release(state);
+			meLock->unlock();
             return false;
         }
 }
 
-bool clParameterView::performScriptWithDebug(char * paScriptNameWithExtension, char * paScriptName, char * paScriptClass, char * paScriptMethod, char *paArg01)
+bool clParameterView::performScriptWithDebug(char * paScriptName, char * paScriptClass, char * paScriptMethod, char *paArg01, char *paArg02, char *paArg03, char *paArg04, char *paArg05, char *paArg06, char *paArg07, char *paArg08, char *paArg09, char *paArg10)
 {
+		PyGILState_STATE state;		
         try
         {
-            PyObject *pName, *pModule, *pDict, *pClass, *pInstance, *pValue;
-            
-
-			//SetCurrentDirectory("./SCRIPTS/");
 			/*
             STARTUPINFO startupInfo = { 0 };
             PROCESS_INFORMATION processInformation = { 0 };
             startupInfo.cb = sizeof(startupInfo);
 			bool loSucces = false;
-			*/
-            //loSucces = CreateProcess(NULL,const_cast<char *>(("python -c \"import winpdb;winpdb.main()\" " + QString(meCurrentRoutineSourceFile).toStdString()).c_str()), NULL, NULL, FALSE, 0, NULL,NULL, &startupInfo, &processInformation);
-			//loSucces = CreateProcess(NULL,const_cast<char *>(("..\\THIRD_PARTY\\HapDebuggerBin\\HapDebugger.exe " + QString(paScriptNameWithExtension).toStdString()).c_str()), NULL, NULL, FALSE, 0, NULL,NULL, &startupInfo, &processInformation);
 			
-			/*
+			
+			
+			meLock->lock();
+			
+			
+            //loSucces = CreateProcess(NULL,const_cast<char *>(("python -c \"import winpdb;winpdb.main()\" " + QString(meCurrentRoutineSourceFile).toStdString()).c_str()), NULL, NULL, FALSE, 0, NULL,NULL, &startupInfo, &processInformation);
+			loSucces = CreateProcess(NULL,const_cast<char *>((".\\THIRD_PARTY\\HapDebuggerBin\\HapDebugger.exe " + QString(".\\" + meObjectId + "\\" + meCurrentRoutineSourceFile).toStdString()).c_str()), NULL, NULL, FALSE, 0, NULL,NULL, &startupInfo, &processInformation);
+			
+			
 			if (!loSucces)
 			{
 				cout << endl << "No success with the function " << endl;
 			}
 			else
 			{
-
 				WaitForSingleObject( processInformation.hProcess, INFINITE );
 				CloseHandle( processInformation.hProcess );
 				CloseHandle( processInformation.hThread );
-
 			}
-			*/
-			//SetCurrentDirectory("../");
+
 			
-			/*
-			STARTUPINFO si = { sizeof( STARTUPINFO ) };
-			PROCESS_INFORMATION pi = { 0 };
-			CreateProcess("python -c \"import winpdb;winpdb.main()\"" paScriptNameWithExtension, "",  NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi);
-			// wait while it is running
-			WaitForSingleObject(pi.hProcess, INFINITE);
-			*/
-            Py_Initialize();
 			
+			state = PyGILState_Ensure();
+
 			PyRun_SimpleString("import sys");
-			PyRun_SimpleString("sys.path.append(\"./SCRIPTS/\")");
-			//Call the debugger information
-			//PyRun_SimpleString("password='mnsbuldog'");			
-			//PyRun_SimpleString("import rpdb2; rpdb2.start_embedded_debugger(password)");
-			/*
-			PyRun_SimpleString("import winpdb;");
-			PyRun_SimpleString(("winpdb " + "\"" + std::string(paScriptNameWithExtension) + "\"").c_str());
-			*/
 			
+			PyObject *pName, *pModule, *pDict, *pClass, *pInstance, *pValue;		
 			
+			QString loObjectPath = QString("sys.path.append(\"./" + meObjectId + QString("/\")"));
+			QByteArray loObjectPathTemp = loObjectPath.toLocal8Bit();
+			PyRun_SimpleString(loObjectPathTemp.data());			
+			meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe","clWorkstationCycle::performScriptWithDebug-> cycle [" + meObjectId + "] path imported -> " + loObjectPath);
 			
-			
-			
-			
-			
+			loObjectPath = QString("sys.path.append(\"./") + meObjectId + QString("/Lib/\")");
+			loObjectPathTemp = loObjectPath.toLocal8Bit();			
+			PyRun_SimpleString(loObjectPathTemp.data());
+			meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe","clWorkstationCycle::performScriptWithDebug-> cycle [" + meObjectId + "] libs imported -> " + loObjectPath);
+
             pName = PyUnicode_FromString(paScriptName);
             pModule = PyImport_Import(pName);
             pDict = PyModule_GetDict(pModule);
-            // Build the name of a callable class
-
             pClass = PyDict_GetItemString(pDict, paScriptClass);
 
             // Create an instance of the class
@@ -1824,39 +1911,112 @@ bool clParameterView::performScriptWithDebug(char * paScriptNameWithExtension, c
                 pInstance = PyObject_CallObject(pClass, NULL);
             }
 
-            pValue = PyObject_CallMethod(pInstance, paScriptMethod, "(s)", paArg01);
-
-
+            switch (meCurrentRoutineArgValue.size())
+            {
+                    case 0:
+                        pValue = PyObject_CallMethod(pInstance, paScriptMethod, NULL);
+                        break;
+                    case 1:
+                        pValue = PyObject_CallMethod(pInstance,
+                        paScriptMethod, "(s)", paArg01);
+                        break;
+                    case 2:
+                        pValue = PyObject_CallMethod(pInstance,
+                        paScriptMethod, "(ss)", paArg01, paArg02);
+                        break;
+                    case 3:
+                        pValue = PyObject_CallMethod(pInstance,
+                        paScriptMethod, "(sss)", paArg01, paArg02, paArg03);
+                        break;
+                    case 4:
+                        pValue = PyObject_CallMethod(pInstance,
+                        paScriptMethod, "(ssss)", paArg01, paArg02, paArg03,paArg04);
+                        break;
+                    case 5:
+                        pValue = PyObject_CallMethod(pInstance,
+                        paScriptMethod, "(sssss)", paArg01, paArg02, paArg03,paArg04,paArg05);
+                        break;
+                    case 6:
+                        pValue = PyObject_CallMethod(pInstance,
+                        paScriptMethod, "(ssssss)", paArg01, paArg02, paArg03,paArg04,paArg05,paArg06);
+                        break;
+                    case 7:
+                        pValue = PyObject_CallMethod(pInstance,
+                        paScriptMethod, "(sssssss)", paArg01, paArg02, paArg03,paArg04,paArg05,paArg06,paArg07);
+                        break;
+                    case 8:
+                        pValue = PyObject_CallMethod(pInstance,
+                        paScriptMethod, "(ssssssss)", paArg01, paArg02, paArg03,paArg04,paArg05,paArg06,paArg07,paArg08);
+                        break;
+                    case 9:
+                        pValue = PyObject_CallMethod(pInstance,
+                        paScriptMethod, "(sssssssss)", paArg01, paArg02, paArg03,paArg04,paArg05,paArg06,paArg07,paArg08,paArg09);
+                        break;
+                    case 10:
+                        pValue = PyObject_CallMethod(pInstance,
+                        paScriptMethod, "(ssssssssss)", paArg01, paArg02, paArg03,paArg04,paArg05,paArg06,paArg07,paArg08,paArg09,paArg10);
+                        break;
+                    default:
+                        pValue = PyObject_CallMethod(pInstance, paScriptMethod, NULL);
+                        break;
+            }
+			meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe",QString("clWorkstationCycle::performScriptWithDebug-> python Function [" + QString(paScriptClass) + "] called for object [" + meObjectId + "]"));
+			
             if (pValue != NULL)
             {
-				meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe","clParameterView::callRoutineDLL() -> Return value of script [" + QString(paScriptName) + "]" + "is ->" + QString::number(PyFloat_AsDouble(pValue)));
-				if (pValue != NULL)Py_DECREF(pValue);
-				/*
-                if (pInstance != NULL)Py_DECREF(pInstance);
-				if (pClass != NULL)Py_DECREF(pClass);
-				if (pDict != NULL)Py_DECREF(pDict);
-				if (pModule != NULL)Py_DECREF(pModule);
-				if (pName != NULL)Py_DECREF(pName);
-				*/
+				meResultFromFunction = PyFloat_AsDouble(pValue);
+                printf("Return of call : %d\n", (int) meResultFromFunction);
             }
             else
             {
                 PyErr_Print();
-				meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe","clParameterView::callRoutineDLL() -> Return value of script [" + QString(paScriptName) + "]" + "is -> -1");
+				meResultFromFunction = -1;
+				printf("Return of call : %d\n", (int) meResultFromFunction);
+				PyErr_Clear();
+				PyRun_SimpleString("import gc");
+				PyRun_SimpleString("gc.collect()");				
+				
+				if (pInstance != NULL) Py_DECREF(pInstance);
+				//if (pClass != NULL) Py_DECREF(pClass);
+				//if (pDict != NULL) Py_DECREF(pDict);
+				if (pModule != NULL) Py_DECREF(pModule);
+				if (pName != NULL) Py_DECREF(pName);				
+				
+				if (!PyGC_IsEnabled()) PyGC_Enable();
+				PyGC_Collect();
+				PyGILState_Release(state);
+				meLock->unlock();		
+				
 				return false;
             }
 			
+
 			
-			
-			
+			meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe",QString("clWorkstationCycle::performScriptWithDebug-> python Objects cleaned for object [" + meObjectId + "]"));
+			PyErr_Clear();
+			PyRun_SimpleString("import gc");
+			PyRun_SimpleString("gc.collect()");
+
+
+			//if (pValue != NULL) Py_DECREF(pValue);
+			if (pInstance != NULL) Py_DECREF(pInstance);
+			//if (pClass != NULL) Py_DECREF(pClass);
+			//if (pDict != NULL) Py_DECREF(pDict);
+			if (pModule != NULL) Py_DECREF(pModule);
+			if (pName != NULL) Py_DECREF(pName);				
+			if (!PyGC_IsEnabled()) PyGC_Enable();
+			PyGC_Collect();			
+			PyGILState_Release(state);
+			meLock->unlock();
+*/
             return true;
         }
         catch(exception &e)
         {
             meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe","clParameterView::performScriptWithDebug() -> " + QString(e.what()));
+			PyGILState_Release(state);
+			meLock->unlock();
             return false;
         }
 }
-
-
 

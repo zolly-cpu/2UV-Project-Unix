@@ -95,8 +95,8 @@ private slots:
 	void slotCallClassMethod(const QString &paActionName);
 private:
 
-	bool performScript(char * paScriptName, char * paScriptClass, char * paScriptMethod, char *paArg01);
-	bool performScriptWithDebug(char * paScriptNameWithExtension, char * paScriptName, char * paScriptClass, char * paScriptMethod, char *paArg01);
+	bool performScript(char * paScriptName, char * paScriptClass, char * paScriptMethod, char *paArg01, char *paArg02, char *paArg03, char *paArg04, char *paArg05, char *paArg06, char *paArg07, char *paArg08, char *paArg09, char *paArg010, int paArgCount);
+	bool performScriptWithDebug(char * paScriptName, char * paScriptClass, char * paScriptMethod, char *paArg01, char *paArg02, char *paArg03, char *paArg04, char *paArg05, char *paArg06, char *paArg07, char *paArg08, char *paArg09, char *paArg010, int paArgCount);
 	bool callRoutineDLL(QString paObjectUUID, QString paCurrentMehtodSourceFile, QString paClassName);
 	bool callRoutinePythonNoDebug(QString paObjectUUID, QString paCurrentMethodSourceFile, QString paClass, QString paMethod);
 	bool callRoutinePythonWithDebug(QString paObjectUUID, QString paCurrentMethodSourceFile, QString paClass, QString paMethod);
@@ -128,6 +128,8 @@ private:
 	vector <QString> meClass;
 
     vector <void *> meLibraryLib;
+    
+    int meArgCountScript = 1;
 };
 
 #endif
