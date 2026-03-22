@@ -27,6 +27,6 @@ GraphClient = myenv.Program('2UVGraphClient', SourcesGraphClient,
                     'libIceDiscovery',
                     'libIceLocatorDiscovery',
                     'libIceSSL',
-                    'libpython3.13'
+                    'libpython3.12'
                         ])
 myenv.Install (InstallDir, GraphClient)
