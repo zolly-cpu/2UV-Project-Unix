@@ -96,7 +96,7 @@ void clMainWindow::exitApplication()
         }
         catch(exception &e)
         {
-            meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVGraphClient.exe","clMainWindow::exitApplication()" + QString(e.what()));
+            meIceClientLogging->insertItem("70",QString(QHostInfo::localHostName()),"2UVGraphClient.exe","clMainWindow::exitApplication()" + QString(e.what()));
         }
 }
 
@@ -125,7 +125,6 @@ void clMainWindow::slotDoIt()
     }
     catch (exception &e)
     {
-			//if(uname(&name)) exit(-1);
-			meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe","clMainWindow::exitApplication()" + QString(e.what()));
+			meIceClientLogging->insertItem("70",QString(QHostInfo::localHostName()),"2UVGraphClient.exe","clMainWindow::exitApplication()" + QString(e.what()));
     }
 }

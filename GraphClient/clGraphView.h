@@ -21,6 +21,8 @@
 #include <QtWidgets/QWidget>
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QLabel>
+#include <QtWidgets/QDateTimeEdit>
+#include <QtWidgets/QCheckBox>
 #include <QtWidgets/QPushButton>
 #include <QtWidgets/QTextEdit>
 #include <QtWidgets/QAction>
@@ -28,6 +30,7 @@
 #include <QtWidgets/QTreeWidget>
 #include <QtWidgets/QListWidgetItem>
 #include <QtWidgets/QListWidget>
+#include <QtWidgets/QGridLayout>
 #include <QtWidgets/QGraphicsObject>
 #include <QtWidgets/QGraphicsItem>
 #include <QtWidgets/QAbstractItemView>
@@ -63,7 +66,7 @@
 using namespace std;
 using namespace QtCharts;
 
-class clGraphView : public QChartView
+class clGraphView : public QWidget
 {
 	Q_OBJECT
 public:
@@ -77,8 +80,8 @@ public slots:
 	void slotDoIt();
 	
 private:
-	bool addGraphLine(vector<QString> paValuesX, QString paTypeX, vector<QString> paValuesY, QString paTypeY, QString paName, QString paColor);
-
+	bool addGraphLine(int paLineSeries, vector<QString> paValuesX, QString paTypeX, vector <int> paIndexX, vector<QString> paValuesY, QString paTypeY, vector <int> paIndexY, QString paName, QString paColor);
+	void initializeUI();
 	QTimer * meTimer;
 
     //Communication class logging client
@@ -89,6 +92,14 @@ private:
 	QGraphicsItem * meGraphicsItem;
 	QChart * meChart;
 	QLineSeries * meSeries[200];
+	QChartView * meChartView;
+	QGridLayout *layout;
+	enum { NumGridRows = 200, NumColls = 20 };
+    QLabel *meLabels[NumGridRows][NumColls];
+    QDateTimeEdit *meDateTimeEdit[NumColls];
+	QCheckBox *meCheckBox[NumColls];
+	
+	
 	
 	QString meGraphClass;
 	QString meGraphProperty;

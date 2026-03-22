@@ -1,7 +1,7 @@
 #define INFO_BUFFER_SIZE 32767
 #include "clGraphView.h"
 
-clGraphView::clGraphView(clIceClientServer * paIceClientServer, clIceClientLogging * paIceClientLogging, QString paXmlFile) : QChartView()
+clGraphView::clGraphView(clIceClientServer * paIceClientServer, clIceClientLogging * paIceClientLogging, QString paXmlFile) : QWidget()
 {
     try
     {
@@ -17,10 +17,9 @@ clGraphView::clGraphView(clIceClientServer * paIceClientServer, clIceClientLoggi
 		meIceClientServer = paIceClientServer;
 		
 		
-		
-		cout << "XML file to read:" << paXmlFile.toStdString() << endl;
-		if (!readXmlFile(paXmlFile))cout << "Problem reading xml file ..." << endl;
-		else cout << "xml file readed ..." << endl;
+		meIceClientLogging->insertItem("70",QString(QHostInfo::localHostName()),"2UVGraphClient.exe","clGraphView::clGraphView() -> XML file to read:" + paXmlFile);
+		if (!readXmlFile(paXmlFile)) meIceClientLogging->insertItem("71",QString(QHostInfo::localHostName()),"2UVGraphClient.exe","clGraphView::clGraphView() -> Problem reading XML file");
+		else meIceClientLogging->insertItem("70",QString(QHostInfo::localHostName()),"2UVGraphClient.exe","clGraphView::clGraphView() -> Reading XML file OK");
 		//meWorkstationStatus = paWorkstationStatus;
 		/*
         doSetup(meThread);
@@ -29,8 +28,8 @@ clGraphView::clGraphView(clIceClientServer * paIceClientServer, clIceClientLoggi
 		*/
 		//meGraphicsItem = new QGraphicsItem(this);
 		
-		meChart = new QChart();
-		this->setChart(meChart);
+
+		initializeUI();
 		
 		//QWidget * object = qobject_cast< QWidget * >(this);
 		//meChart = new QChart(object);
@@ -55,12 +54,11 @@ clGraphView::clGraphView(clIceClientServer * paIceClientServer, clIceClientLoggi
 		
 		
     }
-    catch(...)
+      catch(exception &e)
     {
-		cout << "clGraphView::clGraphView -> constructor fail ..." << endl;
+		meIceClientLogging->insertItem("70",QString(QHostInfo::localHostName()),"2UVGraphClient.exe","clGraphView::clGraphView() -> " + QString(e.what()));
     }
 }
-
 clGraphView::~clGraphView()
 {
 	try
@@ -74,6 +72,55 @@ clGraphView::~clGraphView()
 		
 	}
 }
+
+void clGraphView::initializeUI()
+{
+	try
+	{
+		
+		
+		meChartView = new QChartView;
+		meChart = new QChart();
+		meChartView->setChart(meChart);
+
+		layout = new QGridLayout(this);
+		
+		meLabels[0][0] = new QLabel(QString("Graphical representation:"));
+		meLabels[0][1] = new QLabel(QString("Realtime/defined time"));
+		meLabels[0][2] = new QLabel(QString("From:"));
+		meLabels[0][3] = new QLabel(QString("To:"));
+		
+		meCheckBox[0] = new QCheckBox;
+		meDateTimeEdit[0] = new QDateTimeEdit;
+		meDateTimeEdit[0]->setDateTime((QDateTime::currentDateTime()).addSecs(-60 * 60));
+		meDateTimeEdit[1] = new QDateTimeEdit;
+		meDateTimeEdit[1]->setDateTime(QDateTime::currentDateTime());
+		
+		layout->addWidget(meLabels[0][0],0,0);
+		layout->addWidget(meLabels[0][1],1,0);
+		layout->addWidget(meLabels[0][2],2,0);
+		layout->addWidget(meLabels[0][3],3,0);
+		layout->addWidget(meCheckBox[0],1,1);
+		layout->addWidget(meDateTimeEdit[0],2,1);
+		layout->addWidget(meDateTimeEdit[1],3,1);
+		
+		layout->addWidget(meChartView,0,1);
+		
+		for (int i = 0 ; i < 200; i++)
+		{
+			meSeries[i] = nullptr;
+		}
+		
+		
+		
+	}
+	catch(exception &e)
+    {
+		meIceClientLogging->insertItem("70",QString(QHostInfo::localHostName()),"2UVGraphClient.exe","clGraphView::clGraphView() -> " + QString(e.what()));
+    }
+}
+
+
 
 /*****************************
 * UI functions
@@ -96,27 +143,63 @@ void clGraphView::slotDoIt()
 		loTypeValues.push_back(meGraphType.toStdString());
 		loLogExp.push_back(meGraphExpression.toStdString());
 		
+		if (meCheckBox[0]->isChecked())
+		{
+			loProperties.push_back("DATUM_STOP");
+			loValues.push_back(QString((meDateTimeEdit[1]->dateTime()).toString("yyyy-MM-dd HH:mm:ss.zzz")).toStdString());
+			loTypeValues.push_back("timestamp(3)");
+			loLogExp.push_back("<");
+
+			//3 hours before
+			loProperties.push_back("DATUM_STOP");
+			loValues.push_back(QString((meDateTimeEdit[0]->dateTime()).toString("yyyy-MM-dd HH:mm:ss.zzz")).toStdString());
+			loTypeValues.push_back("timestamp(3)");
+			loLogExp.push_back(">");		
+		}
+		else
+		{		
+			loProperties.push_back("DATUM_STOP");
+			loValues.push_back(QString((QDateTime::currentDateTime()).toString("yyyy-MM-dd HH:mm:ss.zzz")).toStdString());
+			loTypeValues.push_back("timestamp(3)");
+			loLogExp.push_back("<");
+
+			//3 hours before
+			loProperties.push_back("DATUM_STOP");
+			loValues.push_back(QString((QDateTime::currentDateTime()).addSecs(-60 * 60).toString("yyyy-MM-dd HH:mm:ss.zzz")).toStdString());
+			loTypeValues.push_back("timestamp(3)");
+			loLogExp.push_back(">");
+		}
+
+
+		loProperties.push_back(meGraphProperty.toStdString());
+		loValues.push_back(meGraphValue.toStdString());
+		loTypeValues.push_back(meGraphType.toStdString());
+		loLogExp.push_back(meGraphExpression.toStdString());
+		
+		
+		
 		QString loStart = QString("0");
 		QString loStop = QString("0");
 		if (!meIceClientServer->getFromTableDatbaseByProperty(meGraphClass,loStart,loStop,loProperties,loValues,loTypeValues,loLogExp,loReturnIds,loReturnMessage))
 		{
-			meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVGraphClient.exe","clGraphView::slotDoIt() -> " + loReturnMessage);
+			meIceClientLogging->insertItem("70",QString(QHostInfo::localHostName()),"2UVGraphClient.exe","clGraphView::slotDoIt() -> " + loReturnMessage);
 			return;
 		}
 		else
-			meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVGraphClient.exe","clGraphView::slotDoIt() -> " + loReturnMessage);
+			meIceClientLogging->insertItem("70",QString(QHostInfo::localHostName()),"2UVGraphClient.exe","clGraphView::slotDoIt() -> " + loReturnMessage);
 		
 		if (loReturnIds.size() < 1)
 		{
-			meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVGraphClient.exe","clGraphView::slotDoIt() -> no result returned");
+			meIceClientLogging->insertItem("70",QString(QHostInfo::localHostName()),"2UVGraphClient.exe","clGraphView::slotDoIt() -> no result returned");
 			return;
 		}
 		///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 		
 		
+		//Create the line series for the graph
 		for (int r = 0; r < 200; r++)
 		{
-			meSeries[r] = NULL;
+			meSeries[r] = nullptr;
 		}
 		for (int r = 0; r < meGraphLines.size(); r++)
 		{
@@ -137,28 +220,40 @@ void clGraphView::slotDoIt()
 		
 		
 	
-		
+
 		QString loID("");
 		QString loClass("");
 		QString loProperty("");
 		QString loTypeX("");
 		QString loTypeY("");
 		QString loValue("");
-			
-		for (int i = 0; i < loReturnIds.size(); i++)
-		{
-				vector <QString> loResultX;
-				vector <QString> loResultY;
-				
-				loResultX.clear();
-				loResultY.clear();
 
-				for (int t = 0; t < meGraphLines.size(); t++)
-				{
+		vector <QString> loResultX;
+		vector <QString> loResultY;
+		vector <int> loIndexX;
+		vector <int> loIndexY;
+
+		//For each graph line
+		for (int t = 0; t < meGraphLines.size(); t++)
+		{
+			clGraphLine loGraphLine = meGraphLines.at(t);
+			vector <clQuery> meQuery_X = loGraphLine.getQuery_X();
+			vector <clQuery> meQuery_Y = loGraphLine.getQuery_Y();
 			
-					clGraphLine loGraphLine = meGraphLines.at(t);
-					vector <clQuery> meQuery_X = loGraphLine.getQuery_X();
-					vector <clQuery> meQuery_Y = loGraphLine.getQuery_Y();
+			loResultX.clear();
+			loResultY.clear();
+			loIndexX.clear();
+			loIndexY.clear();
+
+		
+
+
+
+
+
+
+			for (int i = 0; i < loReturnIds.size(); i++)
+			{			
 
 
 					loID = QString(loReturnIds.at(i).c_str());
@@ -168,6 +263,7 @@ void clGraphView::slotDoIt()
 						loClass = meQuery_X.at(k).getClass();
 						loProperty = meQuery_X.at(k).getProperty();
 						loTypeX = meQuery_X.at(k).getType();
+						
 						/*
 							virtual bool getFromTableDatabaseById(  QString& paTableName,
 												QString& paId,
@@ -186,15 +282,15 @@ void clGraphView::slotDoIt()
 						
 						if (!meIceClientServer->getFromTableDatabaseById(loClass, loID,loPropertiesSub,loValuesSub,loReturnMessageSub))
 						{
-							meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVGraphClient.exe","clGraphView::slotDoIt() -> " + loReturnMessageSub);
+							meIceClientLogging->insertItem("70",QString(QHostInfo::localHostName()),"2UVGraphClient.exe","clGraphView::slotDoIt() -> " + loReturnMessageSub);
 							return;
 						}
 						else
-							meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVGraphClient.exe","clGraphView::slotDoIt() -> " + loReturnMessageSub);
+							meIceClientLogging->insertItem("70",QString(QHostInfo::localHostName()),"2UVGraphClient.exe","clGraphView::slotDoIt() -> " + loReturnMessageSub);
 						
 						if(loValuesSub.size() < 1)
 						{
-							meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVGraphClient.exe","clGraphView::slotDoIt() -> no result");
+							meIceClientLogging->insertItem("70",QString(QHostInfo::localHostName()),"2UVGraphClient.exe","clGraphView::slotDoIt() -> no result");
 							return;
 						}
 						
@@ -204,7 +300,8 @@ void clGraphView::slotDoIt()
 						else
 						{
 							loResultX.push_back(QString(loValuesSub.at(0).c_str()));
-							break;
+							loIndexX.push_back(meQuery_X.at(k).getIndex());
+							
 						}
 					}
 					
@@ -232,15 +329,15 @@ void clGraphView::slotDoIt()
 						
 						if (!meIceClientServer->getFromTableDatabaseById(loClass, loID,loPropertiesSub,loValuesSub,loReturnMessageSub))
 						{
-							meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVGraphClient.exe","clGraphView::slotDoIt() -> " + loReturnMessageSub);
+							meIceClientLogging->insertItem("70",QString(QHostInfo::localHostName()),"2UVGraphClient.exe","clGraphView::slotDoIt() getFromTableDatabaseById-> " + loReturnMessageSub);
 							return;
 						}
 						else
-							meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVGraphClient.exe","clGraphView::slotDoIt() -> " + loReturnMessageSub);
+							meIceClientLogging->insertItem("70",QString(QHostInfo::localHostName()),"2UVGraphClient.exe","clGraphView::slotDoIt() -> getFromTableDatabaseById" + loReturnMessageSub);
 						
 						if(loValuesSub.size() < 1)
 						{
-							meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVGraphClient.exe","clGraphView::slotDoIt() -> no result");
+							meIceClientLogging->insertItem("70",QString(QHostInfo::localHostName()),"2UVGraphClient.exe","clGraphView::slotDoIt() -> no result");
 							return;
 						}
 						
@@ -250,24 +347,27 @@ void clGraphView::slotDoIt()
 						else
 						{
 							loResultY.push_back(QString(loValuesSub.at(0).c_str()));
-							break;
+							loIndexY.push_back(meQuery_Y.at(l).getIndex());
+							
 						}
 					}
 				}
 				
-				if (!addGraphLine(loResultX, loTypeX, loResultY, loTypeY, "test","blue"))
+				if (!addGraphLine(t,loResultX, loTypeX, loIndexX, loResultY, loTypeY, loIndexY, "test","blue"))
 				{
-					meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVGraphClient.exe","clGraphView::slotDoIt() -> could not add values to graph ...");
-					break;
+					meIceClientLogging->insertItem("70",QString(QHostInfo::localHostName()),"2UVGraphClient.exe","clGraphView::slotDoIt() -> could not add values to graph ...");
+					
 				}
 				else
-					meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVGraphClient.exe","clGraphView::slotDoIt() -> addGraphLine called with success ...");
+					meIceClientLogging->insertItem("70",QString(QHostInfo::localHostName()),"2UVGraphClient.exe","clGraphView::slotDoIt() -> addGraphLine called with success ...");	
 		}
-			
+		
+		
+		meChart->removeAllSeries();	
 		//Add series to the chart	
 		for (int u = 0; u < 200; u++)
 		{
-			if (meSeries[u] != NULL)
+			if (meSeries[u] != nullptr)
 			{
 				meChart->addSeries(meSeries[u]);
 			}
@@ -280,14 +380,14 @@ void clGraphView::slotDoIt()
 		QValueAxis *axisXval;
 		QValueAxis *axisYval;
 				
-		if (loTypeX.compare(QString("timestamp")) == 0 && loTypeY.compare(QString("timestamp")) == 0)
+		if (loTypeX.compare(QString("timestamp(3)")) == 0 && loTypeY.compare(QString("timestamp(3)")) == 0)
 		{
 			
 			axisX = new QDateTimeAxis;
-			axisX->setFormat("dd-MM-yyyy h:mm:ss");
+			axisX->setFormat("dd-MM-yyyy h:mm:ss.zzz");
 			
 			axisY = new QDateTimeAxis;
-			axisY->setFormat("dd-MM-yyyy h:mm:ss");
+			axisY->setFormat("dd-MM-yyyy h:mm:ss.zzz");
 			
 			meChart->addAxis(axisX, Qt::AlignBottom);
 			meChart->addAxis(axisY, Qt::AlignLeft);
@@ -302,10 +402,10 @@ void clGraphView::slotDoIt()
 			}
 
 		}
-		else if (loTypeX.compare(QString("timestamp")) != 0 && loTypeY.compare(QString("timestamp")) == 0)
+		else if (loTypeX.compare(QString("timestamp(3)")) != 0 && loTypeY.compare(QString("timestamp(3)")) == 0)
 		{					
 			axisY = new QDateTimeAxis;
-			axisY->setFormat("dd-MM-yyyy h:mm:ss");
+			axisY->setFormat("dd-MM-yyyy h:mm:ss.zzz");
 			
 			axisXval = new QValueAxis;
 			axisXval->setMin(0);				
@@ -321,30 +421,31 @@ void clGraphView::slotDoIt()
 				}
 			}
 		}
-		else if (loTypeX.compare(QString("timestamp")) == 0 && loTypeY.compare(QString("timestamp")) != 0)
+		else if (loTypeX.compare(QString("timestamp(3)")) == 0 && loTypeY.compare(QString("timestamp(3)")) != 0)
 		{
 			
 			
 			axisX = new QDateTimeAxis;
-			axisX->setFormat("dd-MM-yyyy h:mm:ss");
+			axisX->setFormat("dd-MM-yyyy h:mm:ss.zzz");
+			axisX->setTitleText("Date");
 			
 			axisYval = new QValueAxis;
-			axisYval->setMin(0);				
+			//axisYval->setMin(-1);				
+			axisYval->setTitleText("Value");
 			
 			meChart->addAxis(axisX, Qt::AlignBottom);
 			meChart->addAxis(axisYval, Qt::AlignLeft);							
-			//meSeries[0]->attachAxis(axisX);
-			//meSeries[0]->attachAxis(axisYval);
+			
 			for (int w = 0; w < 200; w++)
 			{
-				if (meSeries[w] != NULL)
+				if (meSeries[w] != nullptr)
 				{
 					meSeries[w]->attachAxis(axisX);
 					meSeries[w]->attachAxis(axisYval);					
 				}
 			}
 		}
-		else if (loTypeX.compare(QString("timestamp")) != 0 && loTypeY.compare(QString("timestamp")) != 0)
+		else if (loTypeX.compare(QString("timestamp(3")) != 0 && loTypeY.compare(QString("timestamp(3)")) != 0)
 		{
 			
 
@@ -368,7 +469,7 @@ void clGraphView::slotDoIt()
     }
     catch(exception &e)
     {
-		meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe","clGraphView::slotDoIt() -> " + QString(e.what()));
+		meIceClientLogging->insertItem("70",QString(QHostInfo::localHostName()),"2UVServerTest.exe","clGraphView::slotDoIt() -> " + QString(e.what()));
     }
 }
 bool clGraphView::readXmlFile(QString paXmlFile)
@@ -438,36 +539,34 @@ bool clGraphView::readXmlFile(QString paXmlFile)
 				//Get the Graphline nodes
 				QDomNode loNodeGraphLine = loDocElemChild.firstChild();
 				
+				QString loName;
+				QString loColor;
+				
 				vector<clGraphLine> loGraphLine;
 				
 				while(!loNodeGraphLine.isNull())
 				{
-					cout << "loNodeGraphLine" << endl;
-					cout << loNodeGraphLine.nodeName().toStdString() << endl;
+					
 					QDomElement loNodeGraphLineElem = loNodeGraphLine.toElement();
+						
+					//Get information of the GraphLineNode
+					loName = loNodeGraphLineElem.attribute("name");
+					loColor = loNodeGraphLineElem.attribute("color");
+
 					QDomNode loNodeGraphLineXY = loNodeGraphLineElem.firstChild();
-					
-					
-					
+										
 					vector<clQuery> loGraphLineQuerys_X;
 					vector<clQuery> loGraphLineQuerys_Y;
-					QString loName;
-					QString loColor;
 					
 					while(!loNodeGraphLineXY.isNull())
 					{						
-						cout << "loNodeGraphLineXY" << endl;
 						QDomElement loNodeGraphLineXYElem = loNodeGraphLineXY.toElement();
-						
-						loName = loNodeGraphLineXYElem.attribute("name");
-						loColor = loNodeGraphLineXYElem.attribute("color");
 													
 						QDomNode loNodeQuery = loNodeGraphLineXYElem.firstChild();
 						while(!loNodeQuery.isNull())
 						{
-							cout << "loNodeQuery" << endl;
 							QDomElement loNodeQueryElem = loNodeQuery.toElement();
-							clQuery loQuery(loNodeQueryElem.attribute("class"),loNodeQueryElem.attribute("property"),loNodeQueryElem.attribute("type"));
+							clQuery loQuery(loNodeQueryElem.attribute("class"),loNodeQueryElem.attribute("property"),loNodeQueryElem.attribute("type"), loNodeQueryElem.attribute("index").toInt());
 							if(loNodeGraphLineXY.nodeName() == "valueQuery_Y")loGraphLineQuerys_Y.push_back(loQuery);
 							if(loNodeGraphLineXY.nodeName() == "valueQuery_X")loGraphLineQuerys_X.push_back(loQuery);
 							loNodeQuery = loNodeQuery.nextSibling();
@@ -491,7 +590,7 @@ bool clGraphView::readXmlFile(QString paXmlFile)
 	}
     catch(exception &e)
     {
-		meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe","clGraphView::readXmlFile() -> " + QString(e.what()));
+		meIceClientLogging->insertItem("70",QString(QHostInfo::localHostName()),"2UVGraphClient.exe","clGraphView::readXmlFile() -> " + QString(e.what()));
 		return false;
     }
 	
@@ -499,150 +598,231 @@ bool clGraphView::readXmlFile(QString paXmlFile)
 /************************************************
 * Do thread startup
 ************************************************/
-bool clGraphView::addGraphLine(vector<QString> paValuesX, QString paTypeX, vector<QString> paValuesY, QString paTypeY, QString paName, QString paColor)
+bool clGraphView::addGraphLine(int paLineSeries, vector<QString> paValuesX, QString paTypeX, vector <int> paIndexX, vector<QString> paValuesY, QString paTypeY, vector <int> paIndexY, QString paName, QString paColor)
 {
 	try
-	{
-		//meChart->removeAllSeries();
-		/*
-		meSeries = new QLineSeries;
-		meSeries->clear();
+	{		
+		
+		meSeries[paLineSeries]->clear();
 		
 		
-	    // Customize chart title
-		QFont font;
-		font.setPixelSize(18);
-		meChart->setTitleFont(font);
-		meChart->setTitleBrush(QBrush(Qt::blue));
-		*/
-
-		QDateTimeAxis *axisY;		
-		QDateTimeAxis *axisX;
-		QValueAxis *axisXval;
-		QValueAxis *axisYval;
-			
-		if (paTypeX.compare(QString("timestamp")) == 0 && paTypeY.compare(QString("timestamp")) == 0)
+		if (paTypeX.compare(QString("timestamp(3)")) == 0 && paTypeY.compare(QString("timestamp(3)")) == 0)
 		{
 			cout << "Chart 1" << endl;
 			for (int i=0; i < (int) paValuesX.size(); i++)
 			{
-				meSeries[i]->append((QDateTime::fromString(paValuesX.at(i),"yyyy-MM-dd HH:mm:ss.zzz")).toMSecsSinceEpoch(),(QDateTime::fromString(paValuesY.at(i),"yyyy-MM-dd HH:mm:ss.zzz")).toMSecsSinceEpoch());
+				meSeries[paLineSeries]->append((QDateTime::fromString(paValuesX.at(i),"yyyy-MM-dd HH:mm:ss.zzz")).toMSecsSinceEpoch(),(QDateTime::fromString(paValuesY.at(i),"yyyy-MM-dd HH:mm:ss.zzz")).toMSecsSinceEpoch());
 			}
-			/*
-			meChart->addSeries(meSeries);
-			
-			axisX = new QDateTimeAxis;
-			axisX->setFormat("dd-MM-yyyy h:mm:ss");
-
-			axisY = new QDateTimeAxis;
-			axisY->setFormat("dd-MM-yyyy h:mm:ss");					
-			
-			meChart->setAxisX(axisX, meSeries);
-			meChart->setAxisY(axisY, meSeries);
-			*/
 		}
-		else if (paTypeX.compare(QString("timestamp")) != 0 && paTypeY.compare(QString("timestamp")) == 0)
+		else if (paTypeX.compare(QString("timestamp(3)")) != 0 && paTypeY.compare(QString("timestamp(3)")) == 0)
 		{
 			cout << "Chart 2" << endl;
+			
+			
+			
 			for (int i=0; i < (int) paValuesX.size(); i++)
 			{
-				meSeries[i]->append((qreal)(paValuesX.at(i).toDouble()),(QDateTime::fromString(paValuesY.at(i),"yyyy-MM-dd HH:mm:ss.zzz")).toMSecsSinceEpoch());	
+				bool loIsArrayX = false;
+			    bool loIsArrayY = false;
+				QString loXvalue;
+				QString loYvalue;
+				if (paTypeX.toUpper().compare("VARCHAR(64)[]") == 0 ||
+					paTypeX.toUpper().compare("VARCHAR(255)[]") == 0 ||
+					paTypeX.toUpper().compare("TEXT[]") == 0 ||
+					paTypeX.toUpper().compare("TIMESTAMP[]") == 0 ||
+					paTypeX.toUpper().compare("TIMESTAMP(3)[]") == 0)
+				{
+					 QStringList loElements = QString(paValuesX.at(i)).remove("}").remove("{").split(",", QString::SkipEmptyParts);
+					 if (loElements.size() > paIndexX.at(i))
+						loXvalue = loElements.at(paIndexX.at(i));
+					else
+						loXvalue = loElements.at(0);
+					 loIsArrayX = true;
+				}
+				else if (paTypeX.toUpper().compare("INT[]") == 0 ||
+							paTypeX.toUpper().compare("INT4[]") == 0 ||
+							paTypeX.toUpper().compare("INT8[]") == 0 ||
+							paTypeX.toUpper().compare("FLOAT4[]") == 0 ||
+							paTypeX.toUpper().compare("FLOAT8[]") == 0)
+				{
+					QStringList loElements = QString(paValuesX.at(i)).remove("}").remove("{").split(",", QString::SkipEmptyParts);					 
+					 if (loElements.size() > paIndexX.at(i))
+						loXvalue = loElements.at(paIndexX.at(i));
+					else
+						loXvalue = loElements.at(0);
+					loIsArrayX = true;					
+				}
+				if (paTypeY.toUpper().compare("VARCHAR(64)[]") == 0 ||
+					paTypeY.toUpper().compare("VARCHAR(255)[]") == 0 ||
+					paTypeY.toUpper().compare("TEXT[]") == 0 ||
+					paTypeY.toUpper().compare("TIMESTAMP[]") == 0 ||
+					paTypeY.toUpper().compare("TIMESTAMP(3)[]") == 0)
+				{
+					 QStringList loElements = QString(paValuesY.at(i)).remove("}").remove("{").split(",", QString::SkipEmptyParts);
+					 if (loElements.size() > paIndexY.at(i))
+						loYvalue = loElements.at(paIndexY.at(i));
+					 else
+						loYvalue = loElements.at(0);
+					 loIsArrayY = true;
+				}
+				else if (paTypeY.toUpper().compare("INT[]") == 0 ||
+							paTypeY.toUpper().compare("INT4[]") == 0 ||
+							paTypeY.toUpper().compare("INT8[]") == 0 ||
+							paTypeY.toUpper().compare("FLOAT4[]") == 0 ||
+							paTypeY.toUpper().compare("FLOAT8[]") == 0)
+				{
+					QStringList loElements = QString(paValuesY.at(i)).remove("}").remove("{").split(",", QString::SkipEmptyParts);					 
+					 if (loElements.size() > paIndexY.at(i))
+						loYvalue = loElements.at(paIndexY.at(i));
+					 else
+						loYvalue = loElements.at(0);
+					loIsArrayY = true;
+				}
+				
+				if (!loIsArrayX) loXvalue = paValuesX.at(i);
+				if (!loIsArrayY) loYvalue = paValuesY.at(i); 
+				meSeries[paLineSeries]->append((qreal)(loXvalue.toDouble()),(QDateTime::fromString(loYvalue,"yyyy-MM-dd HH:mm:ss.zzz")).toMSecsSinceEpoch());	
 			}
-			/*
-			meChart->addSeries(meSeries);			
-			
-			axisY = new QDateTimeAxis;
-			axisXval = new QValueAxis;
-			axisXval->setMin(0);
-			axisY->setFormat("dd-MM-yyyy h:mm:ss");			
-			
-			meChart->setAxisX(axisXval, meSeries);
-			meChart->setAxisY(axisY, meSeries);
-			*/
 		}
-		else if (paTypeX.compare(QString("timestamp")) == 0 && paTypeY.compare(QString("timestamp")) != 0)
+		else if (paTypeX.compare(QString("timestamp(3)")) == 0 && paTypeY.compare(QString("timestamp(3)")) != 0)
 		{
-			cout << "Chart 3" << endl;
-			for (int i=0; i < paValuesX.size(); i++)
+			for (int i=0; i < (int) paValuesX.size(); i++)
 			{
-				cout << paValuesX.at(i).toStdString() << " " << paValuesY.at(i).toStdString() << endl;
-				cout << QString::number((QDateTime::fromString(paValuesX.at(i),"yyyy-MM-dd HH:mm:ss")).toMSecsSinceEpoch()).toStdString() << endl;
-				meSeries[i]->append((QDateTime::fromString(paValuesX.at(i),"yyyy-MM-dd HH:mm:ss")).toMSecsSinceEpoch(),(qreal)(paValuesY.at(i).toDouble()));	
+			    bool loIsArrayX = false;
+			    bool loIsArrayY = false;
+				QString loXvalue;
+				QString loYvalue;
+				if (paTypeX.toUpper().compare("VARCHAR(64)[]") == 0 ||
+					paTypeX.toUpper().compare("VARCHAR(255)[]") == 0 ||
+					paTypeX.toUpper().compare("TEXT[]") == 0 ||
+					paTypeX.toUpper().compare("TIMESTAMP[]") == 0 ||
+					paTypeX.toUpper().compare("TIMESTAMP(3)[]") == 0)
+				{
+					 QStringList loElements = QString(paValuesX.at(i)).remove("}").remove("{").split(",", QString::SkipEmptyParts);
+					 if (loElements.size() > paIndexX.at(i))
+						loXvalue = loElements.at(paIndexX.at(i));
+					else
+						loXvalue = loElements.at(0);
+					 loIsArrayX = true;
+				}
+				else if (paTypeX.toUpper().compare("INT[]") == 0 ||
+							paTypeX.toUpper().compare("INT4[]") == 0 ||
+							paTypeX.toUpper().compare("INT8[]") == 0 ||
+							paTypeX.toUpper().compare("FLOAT4[]") == 0 ||
+							paTypeX.toUpper().compare("FLOAT8[]") == 0)
+				{
+					QStringList loElements = QString(paValuesX.at(i)).remove("}").remove("{").split(",", QString::SkipEmptyParts);					 
+					if (loElements.size() > paIndexX.at(i))
+						loXvalue = loElements.at(paIndexX.at(i));
+					else
+						loXvalue = loElements.at(0);
+					loIsArrayX = true;					
+				}
+				if (paTypeY.toUpper().compare("VARCHAR(64)[]") == 0 ||
+					paTypeY.toUpper().compare("VARCHAR(255)[]") == 0 ||
+					paTypeY.toUpper().compare("TEXT[]") == 0 ||
+					paTypeY.toUpper().compare("TIMESTAMP[]") == 0 ||
+					paTypeY.toUpper().compare("TIMESTAMP(3)[]") == 0)
+				{
+					 QStringList loElements = QString(paValuesY.at(i)).remove("}").remove("{").split(",", QString::SkipEmptyParts);
+					 if (loElements.size() > paIndexY.at(i))
+						loYvalue = loElements.at(paIndexY.at(i));
+					 else
+						loYvalue = loElements.at(0);
+					 loIsArrayY = true;
+				}
+				else if (paTypeY.toUpper().compare("INT[]") == 0 ||
+							paTypeY.toUpper().compare("INT4[]") == 0 ||
+							paTypeY.toUpper().compare("INT8[]") == 0 ||
+							paTypeY.toUpper().compare("FLOAT4[]") == 0 ||
+							paTypeY.toUpper().compare("FLOAT8[]") == 0)
+				{
+					QStringList loElements = QString(paValuesY.at(i)).remove("}").remove("{").split(",", QString::SkipEmptyParts);					 			    					
+					 if (loElements.size() > paIndexY.at(i))
+						loYvalue = loElements.at(paIndexY.at(i));
+					 else
+						loYvalue = loElements.at(0);					
+					loIsArrayY = true;
+				}
+				
+				if (!loIsArrayX) loXvalue = paValuesX.at(i);
+				if (!loIsArrayY) loYvalue = paValuesY.at(i);
+				//meIceClientLogging->insertItem("70",QString(QHostInfo::localHostName()),"2UVGraphClient.exe",QString("clGraphView::addGraphLine() appended values-> %1 %2").arg(loXvalue).arg(loYvalue));
+				meSeries[paLineSeries]->append((QDateTime::fromString(loXvalue,"yyyy-MM-dd HH:mm:ss.zzz")).toMSecsSinceEpoch(),(qreal)(loYvalue.toDouble()));	
 			}
-			/*
-			meChart->addSeries(meSeries);
-			
-			axisX = new QDateTimeAxis;
-			axisX->setFormat("dd-MM-yyyy h:mm:ss");
-			
-			axisYval = new QValueAxis;
-			axisYval->setMin(0);				
-			
-			meChart->addAxis(axisX, Qt::AlignBottom);
-			meChart->addAxis(axisYval, Qt::AlignLeft);							
-			meSeries->attachAxis(axisX);
-			meSeries->attachAxis(axisYval);			
-			*/
-			
 		}
-		else if (paTypeX.compare(QString("timestamp")) != 0 && paTypeY.compare(QString("timestamp")) != 0)
+		else if (paTypeX.compare(QString("timestamp(3)")) != 0 && paTypeY.compare(QString("timestamp(3)")) != 0)
 		{
 			cout << "Chart 4" << endl;
 			for (int i=0; i < paValuesX.size(); i++)
 			{
-				meSeries[i]->append((qreal)(paValuesX.at(i).toDouble()),(qreal)(paValuesY.at(i).toDouble()));	
+				bool loIsArrayX = false;
+			    bool loIsArrayY = false;
+				QString loXvalue;
+				QString loYvalue;
+				if (paTypeX.toUpper().compare("VARCHAR(64)[]") == 0 ||
+					paTypeX.toUpper().compare("VARCHAR(255)[]") == 0 ||
+					paTypeX.toUpper().compare("TEXT[]") == 0 ||
+					paTypeX.toUpper().compare("TIMESTAMP[]") == 0 ||
+					paTypeX.toUpper().compare("TIMESTAMP(3)[]") == 0)
+				{
+					 QStringList loElements = QString(paValuesX.at(i)).remove("}").remove("{").split(",", QString::SkipEmptyParts);
+					 if (loElements.size() > paIndexX.at(i))
+						loXvalue = loElements.at(paIndexX.at(i));
+					 else
+						loXvalue = loElements.at(0);
+					 loIsArrayX = true;
+				}
+				else if (paTypeX.toUpper().compare("INT[]") == 0 ||
+							paTypeX.toUpper().compare("INT4[]") == 0 ||
+							paTypeX.toUpper().compare("INT8[]") == 0 ||
+							paTypeX.toUpper().compare("FLOAT4[]") == 0 ||
+							paTypeX.toUpper().compare("FLOAT8[]") == 0)
+				{
+					QStringList loElements = QString(paValuesX.at(i)).remove("}").remove("{").split(",", QString::SkipEmptyParts);					 
+					if (loElements.size() > paIndexX.at(i))
+						loXvalue = loElements.at(paIndexX.at(i));
+					else
+						loXvalue = loElements.at(0);
+					loIsArrayX = true;					
+				}
+				if (paTypeY.toUpper().compare("VARCHAR(64)[]") == 0 ||
+					paTypeY.toUpper().compare("VARCHAR(255)[]") == 0 ||
+					paTypeY.toUpper().compare("TEXT[]") == 0 ||
+					paTypeY.toUpper().compare("TIMESTAMP[]") == 0 ||
+					paTypeY.toUpper().compare("TIMESTAMP(3)[]") == 0)
+				{
+					 QStringList loElements = QString(paValuesY.at(i)).remove("}").remove("{").split(",", QString::SkipEmptyParts);
+					 if (loElements.size() > paIndexY.at(i))
+						loYvalue = loElements.at(paIndexY.at(i));
+					 else
+						loYvalue = loElements.at(0);
+					 loIsArrayY = true;
+				}
+				else if (paTypeY.toUpper().compare("INT[]") == 0 ||
+							paTypeY.toUpper().compare("INT4[]") == 0 ||
+							paTypeY.toUpper().compare("INT8[]") == 0 ||
+							paTypeY.toUpper().compare("FLOAT4[]") == 0 ||
+							paTypeY.toUpper().compare("FLOAT8[]") == 0)
+				{
+					QStringList loElements = QString(paValuesY.at(i)).remove("}").remove("{").split(",", QString::SkipEmptyParts);					 
+					 if (loElements.size() > paIndexY.at(i))
+						loYvalue = loElements.at(paIndexY.at(i));
+					 else
+						loYvalue = loElements.at(0);
+					loIsArrayY = true;
+				}
+				
+				if (!loIsArrayX) loXvalue = paValuesX.at(i);
+				if (!loIsArrayY) loYvalue = paValuesY.at(i);				
+				meSeries[paLineSeries]->append((qreal)(loXvalue.toDouble()),(qreal)(loYvalue.toDouble()));	
 			}			
-			/*
-			meChart->addSeries(meSeries);
-			
-			axisXval = new QValueAxis;
-			axisXval->setMin(0);
-			
-			axisYval = new QValueAxis;
-			axisYval->setMin(0);
-			
-			meChart->setAxisX(axisXval, meSeries);
-			meChart->setAxisY(axisYval, meSeries);							
-			*/
 		}
-		
-		//We moeten de vector copieren naar een vaste variabele
-		/*
-		vector <clWorkstationStatus> &loWorkstationStatus  = *meWorkstationStatus;
-
-
-
-		meChart->setTitle((QString)((clWorkstationStatus)loWorkstationStatus[0]).getWorkstationName());
-		
-		for (int i=0; i < loWorkstationStatus.size(); i++)
-		{
-			meIceClientLogging->insertItem("1","2UVLogServer.exe","clWorkstationGraphWidget::setTimingsInGraph ->" + QString("loWorkstationStatus[i]).getTimeStamp() [") + QString::number(((QDateTime)((clWorkstationStatus)loWorkstationStatus[i]).getTimeStamp()).toMSecsSinceEpoch()) + QString("] with value [" + QString::number(((qreal)((clWorkstationStatus)loWorkstationStatus[i]).getPercentageCpuUsage().toLong())) + QString("]")));
-			meSeries->append(((QDateTime)((clWorkstationStatus)loWorkstationStatus[i]).getTimeStamp()).toMSecsSinceEpoch(),((qreal)((clWorkstationStatus)loWorkstationStatus[i]).getPercentageCpuUsage().toDouble()));	
-		}
-		meChart->removeAllSeries();
-		meChart->addSeries(meSeries);
-		
-		QDateTimeAxis *axisX = new QDateTimeAxis;
-		axisX->setFormat("dd-MM-yyyy h:mm:ss");
-		
-		QValueAxis *axisY = new QValueAxis;
-		axisY->setMin(0);
-		
-		
-		meChart->setAxisX(axisX, meSeries);
-		meChart->setAxisY(axisY, meSeries);
-	
-		
-		*/
-
-		/*
-		this->setRenderHint(QPainter::Antialiasing);
-		*/
 		return true;
 	}
     catch(exception &e)
     {
-		meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe","clGraphView::addGraphLine() -> " + QString(e.what()));
+		meIceClientLogging->insertItem("70",QString(QHostInfo::localHostName()),"2UVGraphClient.exe","clGraphView::addGraphLine() -> " + QString(e.what()));
 		return false;
     }
 }
