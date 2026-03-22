@@ -15,6 +15,7 @@
 #include "clIceClientServer.h"
 #include "clLivingObjectMach.h"
 #include "clLivingObjectLocator.h"
+#include "clLivingObjectMeasure.h"
 #include "clClassLoader.h"
 
 //! [0]
@@ -34,6 +35,7 @@ private:
 	clIceClientServer * meIceClientServer;
 	clLivingObjectMach * meLivingObjectMach[200];
 	clLivingObjectLocator * meLivingObjectLocator[200];
+	clLivingObjectMeasure * meLivingObjectMeas[200];
 	QThread * meThread[200];
 	QMutex * meLock;
 	

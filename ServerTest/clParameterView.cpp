@@ -1,7 +1,7 @@
 #define INFO_BUFFER_SIZE 32767
 #include "clParameterView.h"
 
-clParameterView::clParameterView(clIceClientServer * paIceClientServer, clIceClientLogging * paIceClientLogging, clClassLoader *paClassLoader, QWidget* paParent, const char* paName)
+clParameterView::clParameterView(clIceClientServer * paIceClientServer, clIceClientLogging * paIceClientLogging, clClassLoader *paClassLoader, QMutex * paLock, QWidget* paParent, const char* paName)
 {
     meIceClientLogging = paIceClientLogging;
     meIceClientServer = paIceClientServer;
@@ -9,6 +9,8 @@ clParameterView::clParameterView(clIceClientServer * paIceClientServer, clIceCli
     meParameterView.setupUi(this);
 	
 	meClassLoader = paClassLoader;
+	
+	meLock = paLock;
 	
 	readMappingIcons();
 
@@ -1678,12 +1680,21 @@ bool clParameterView::callRoutinePythonWithDebug(QString paObjectUUID, QString p
 	try
 	{
 		char * loArg01 = NULL;
+		char * loArg02 = NULL;
+		char * loArg03 = NULL;
+		char * loArg04 = NULL;
+		char * loArg05 = NULL;
+		char * loArg06 = NULL;
+		char * loArg07 = NULL;
+		char * loArg08 = NULL;
+		char * loArg09 = NULL;
+		char * loArg10 = NULL;		
 		QByteArray byteArray = paObjectUUID.toUtf8();
 		loArg01 = byteArray.data();
 
 		QString loTemp = paCurrentMethodSourceFile;	
 		loTemp.replace(".py","");
-        if (!performScriptWithDebug(paCurrentMethodSourceFile.toUtf8().data(), loTemp.toUtf8().data(),paClass.toUpper().toUtf8().data(),paMethod.toUtf8().data(),loArg01))
+        if (!performScriptWithDebug(loTemp.toUtf8().data(),paClass.toUpper().toUtf8().data(),paMethod.toUtf8().data(),loArg01,loArg02,loArg03,loArg04,loArg05,loArg06,loArg07,loArg08,loArg09,loArg10,meArgCountScript))
 			return false;
 		
 		cout << endl << "Do something with the return value" << endl;
@@ -1703,7 +1714,7 @@ bool clParameterView::performScript(char * paScriptName, char * paScriptClass, c
 		
         try
         {
-			meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe","clParameterView::performScript-> cycle [" + meObjectId + "] initialising python");
+			meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe","clParameterView::performScript-> initialising python");
 			meLock->lock();
 			
 			state = PyGILState_Ensure();
@@ -1716,22 +1727,22 @@ bool clParameterView::performScript(char * paScriptName, char * paScriptClass, c
 			//QString loObjectPath = QString("sys.path.append('./" + meObjectId + QString("/')"));
 			QByteArray loObjectPathTemp = loObjectPath.toLocal8Bit();
 			PyRun_SimpleString(loObjectPathTemp.data());
-			meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe","clWorkstationCycle::performScript-> cycle [" + meObjectId + "] path imported -> " + loObjectPath);
+			meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe","clParameterView::performScript-> path imported -> " + loObjectPath);
 			
 			loObjectPath = QString("sys.path.append('./SCRIPTS/Lib/')");
 			//loObjectPath = QString("sys.path.append('./") + meObjectId + QString("/Lib/')");
 			loObjectPathTemp = loObjectPath.toLocal8Bit();			
 			PyRun_SimpleString(loObjectPathTemp.data());
-			meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe","clWorkstationCycle::performScript-> cycle [" + meObjectId + "] libs imported -> " + loObjectPath);
+			meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe","clParameterView::performScript-> libs imported -> " + loObjectPath);
 			
             pName = PyUnicode_FromString(paScriptName);
-			meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe","clWorkstationCycle::performScript-> python pName created for object [" + meObjectId + "]");
+			meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe","clParameterView::performScript-> python pName created");
             pModule = PyImport_Import(pName);
-			meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe","clWorkstationCycle::performScript-> python pModule created for object [" + meObjectId + "]");
+			meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe","clParameterView::performScript-> python pModule created");
             pDict = PyModule_GetDict(pModule);
-            meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe","clWorkstationCycle::performScript-> python pDict created for object [" + meObjectId + "]");
+            meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe","clParameterView::performScript-> python pDict created");
             pClass = PyDict_GetItemString(pDict, paScriptClass);
-			meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe","clWorkstationCycle::performScript-> python pClass created for object [" + meObjectId + "]");
+			meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe","clParameterView::performScript-> python pClass created");
 
             // Create an instance of the class
 
@@ -1739,7 +1750,7 @@ bool clParameterView::performScript(char * paScriptName, char * paScriptClass, c
             {
                 pInstance = PyObject_CallObject(pClass, NULL);
             }
-			meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe","clWorkstationCycle::performScript-> python pInstance created for object [" + meObjectId + "]");
+			meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe","clParameterView::performScript-> python pInstance created");
 
             switch (paArgCount)
             {
@@ -1790,18 +1801,17 @@ bool clParameterView::performScript(char * paScriptName, char * paScriptClass, c
                         pValue = PyObject_CallMethod(pInstance, paScriptMethod, NULL);
                         break;
             }
-			meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe",QString("clWorkstationCycle::performScript-> python Function [" + QString(paScriptClass) + "] called for object [" + meObjectId + "]"));
-			
+			meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe",QString("clParameterView::performScript-> python Function [" + QString(paScriptClass) + "] called"));
+			int meResult = -1;
             if (pValue != NULL)
             {
-				meResultFromFunction = PyFloat_AsDouble(pValue);
-                printf("Return of call : %d\n", (int) meResultFromFunction);
+				meResult = PyFloat_AsDouble(pValue);
+                printf("Return of call : %d\n", (int) meResult);
             }
             else
             {
                 PyErr_Print();
-				meResultFromFunction = -1;
-				printf("Return of call : %d\n", (int) meResultFromFunction);
+				printf("Return of call : %d\n", (int) meResult);
 				PyErr_Clear();
 				PyRun_SimpleString("import gc");
 				PyRun_SimpleString("gc.collect()");				
@@ -1822,7 +1832,7 @@ bool clParameterView::performScript(char * paScriptName, char * paScriptClass, c
 			
 
 			
-			meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe",QString("clWorkstationCycle::performScript-> python Objects cleaned for object [" + meObjectId + "]"));
+			meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe",QString("clParameterView::performScript-> python Objects cleaned"));
 			PyErr_Clear();
 			PyRun_SimpleString("import gc");
 			PyRun_SimpleString("gc.collect()");
@@ -1850,7 +1860,7 @@ bool clParameterView::performScript(char * paScriptName, char * paScriptClass, c
         }
 }
 
-bool clParameterView::performScriptWithDebug(char * paScriptName, char * paScriptClass, char * paScriptMethod, char *paArg01, char *paArg02, char *paArg03, char *paArg04, char *paArg05, char *paArg06, char *paArg07, char *paArg08, char *paArg09, char *paArg10)
+bool clParameterView::performScriptWithDebug(char * paScriptName, char * paScriptClass, char * paScriptMethod, char *paArg01, char *paArg02, char *paArg03, char *paArg04, char *paArg05, char *paArg06, char *paArg07, char *paArg08, char *paArg09, char *paArg10, int paArgCount)
 {
 		PyGILState_STATE state;		
         try

@@ -1817,12 +1817,15 @@ bool clObject::insertObject(vector <QString> paColumns, vector <QString> paValue
 
 					//Get the id of the product i
 					//Get from the table by property
-					vector <string> loParametersType;
-					vector <string> loParameters;
-					vector <string> loParametersValue;
-					vector <string> loLogExp;
+
+
+					vector <std::string> loParameters;
+					vector <std::string> loParametersValue;
+					vector <std::string> loParametersType;
+					vector <std::string> loLogExp;
 					vector <std::string> loReturnIds;
 					QString loParamReturnMessage;
+
 
 					loParameters.push_back("NAME");
 					loParametersValue.push_back(loProductName.toUtf8().constData());
