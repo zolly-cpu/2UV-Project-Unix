@@ -2270,18 +2270,18 @@ bool clDatabasePostgres::buildConditions(vector <QString> paProperties,vector <Q
                 else if (loTypeValue.toLower().compare(QString("text[]")) == 0)
                 {
 					QStringList loArrValues = loValue.split("$;$");
-					QString loArrValue = QString("[");
+					QString loArrValue = QString("'{");
 					if (loArrValues.size() > 0)
 					{
 						for (int t = 0; t < loArrValues.size(); t++)
 						{
-							if (loArrValue.compare(QString("[")) == 0)
-								loArrValue = loArrValue + QString("'") + QString(loArrValues.at(t)).replace("'","''") + QString("'");
+							if (loArrValue.compare(QString("'{")) == 0)
+								loArrValue = loArrValue + QString("\"") + QString(loArrValues.at(t)).replace("'","''") + QString("\"");
 							else
-								loArrValue = loArrValue + QString(",'") + QString(loArrValues.at(t)).replace("'","''") + QString("'");
+								loArrValue = loArrValue + QString(",\"") + QString(loArrValues.at(t)).replace("'","''") + QString("\"");
 						}
 					}
-					loArrValue = loArrValue + QString("]:: as TEXT[]");
+					loArrValue = loArrValue + QString("}'::text[]");
 					loVariable = QString(" " + loLogExp + " " + loArrValue);
                 }
                 else if (loTypeValue.toLower().compare(QString("text[][]")) == 0)

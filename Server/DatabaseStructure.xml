@@ -5,7 +5,7 @@
 	-->
 	<ROUTINE name="RTI_ADD_CUSTOMER" alias="Adding a customer" source="PYTHON" sourcename="ADD_CUSTOMER.PY" methodname="integer">
 		<OBJECT name="EMPLOYEE"/>
-		<OBJECT name="PERSON"/>
+		<OBJECT name="CUSTOMER"/>
 	</ROUTINE>
 	<!--
     <ROUTINE name="LINK_EMPL" alias="Link an employee" source="DLL" sourcename="LINK_EMPLOYEE.DLL" returnType="string">
@@ -16,7 +16,7 @@
 	-->
     <ROUTINE name="RTI_ADD_PHONE" alias="Adding a customer" source="PYTHON" sourcename="ADD_CUSTOMER.PY" methodname="integer">
 		<OBJECT name="EMPLOYEE"/>
-		<OBJECT name="PERSON"/>
+		<OBJECT name="CUSTOMER"/>
 	</ROUTINE>
 	<!--
     <ROUTINE name="SEARCH_PERSON" alias="SEARCH_PERSON" source="DLL" 	sourcename="LINK_EMPLOYEE.DLL" returnType="string">
@@ -26,7 +26,7 @@
 	-->
 	    <ROUTINE name="RTI_ADD_CHEF" alias="Adding a chef" source="PYTHON" sourcename="ADD_CUSTOMER.PY" methodname="integer">
 		<OBJECT name="EMPLOYEE"/>
-		<OBJECT name="PERSON"/>
+		<OBJECT name="CUSTOMER"/>
 	</ROUTINE>
 	
 	
@@ -331,12 +331,13 @@
       	<COLUMN name="OBJECTS" alias="Included objects" type="uuid[]" extra="" 	reference="PERSON$;$CUSTOMER$;$EMPLOYEE$;$LIVING_OBJ_MACH"></COLUMN>
       	<COLUMN name="DATUM_START" alias="Start date" type="timestamp(3)" extra="" reference="no"></COLUMN>
       	<COLUMN name="DATUM_STOP" alias="Stop date" type="timestamp(3)" extra="" reference="no"></COLUMN>
-		<COLUMN name="H2O_VALUE" alias="H2O value" type="float8" extra="" reference="no"></COLUMN>
 		<COLUMN name="PERFORMED_WORKSTEP" alias="Performed workstep" type="uuid" extra="" reference="WORKSTEP"></COLUMN>
 		<COLUMN name="OPERATION_STATE" alias="State of the operation" type="int" extra="enum" reference="no"></COLUMN>
 		<COLUMN name="OPERATION_SOURCE" alias="State of the operation" type="int" extra="enum" reference="no"></COLUMN>
 		<COLUMN name="OPERATION_CLOSED_CAUSE" alias="Why operation closed" type="int" extra="enum" reference="no"></COLUMN>
 		<COLUMN name="OPERATION_ERROR_INFORMATION" alias="Error Information" type="text" extra="" reference="no"></COLUMN>
+		<COLUMN name="MEASURED_FLOAT_VALUE" alias="Measured Values" type="float8[]" extra="" reference="no"></COLUMN>
+		<COLUMN name="MEASURED_TEXT_VALUE" alias="Measured Values" type="text[]" extra="" reference="no"></COLUMN>
     </TABLE>
     <TABLE name="EMPLOYEE">
       <COLUMN name="PKEY" alias="Primary key" type="uuid" extra="" reference="no"></COLUMN>	
@@ -401,6 +402,26 @@
 		<COLUMN name="CURRENT_ERROR" alias="Current error" type="text" extra="" reference="no"></COLUMN>
 		<COLUMN name="WS_TECH" alias="Workplace technology" type="int" extra="enum" reference="no"></COLUMN>
     </TABLE>
+    <TABLE name="LIVING_OBJ_MEAS">
+      	<COLUMN name="PKEY" alias="Primary key" type="uuid" extra="" reference="no"></COLUMN>	
+      	<COLUMN name="NAME" alias="Name" type="varchar(255)" extra="" reference="no"></COLUMN>
+		<COLUMN name="CREATED_ON" alias="Creation date" type="timestamp(3)" extra="" reference="no"></COLUMN>	  
+      	<COLUMN name="DATUM_START" alias="Start date" type="timestamp" extra="" reference="no"></COLUMN>
+      	<COLUMN name="DATUM_STOP" alias="Stop date" type="timestamp" extra="" reference="no"></COLUMN>
+		<COLUMN name="TIMER_CYCLE" alias="Cycle timer" type="int" extra="" reference="no"></COLUMN>
+		<COLUMN name="SOCKET_PORT" alias="Port of the socket" type="int" extra="" reference="no"></COLUMN>
+		<COLUMN name="SOCKET_IP" alias="IP of the socket" type="text" extra="" reference="no"></COLUMN>
+		<COLUMN name="WORKSTATION_NAME" alias="Workstation name" type="text" extra="" reference="no"></COLUMN>
+		<COLUMN name="COMMANDS_TODO" alias="Commands to perform" type="text[]" extra="" reference="no"></COLUMN>
+		<COLUMN name="COMMANDS_DONE" alias="Command history" type="text[]" extra="" reference="no"></COLUMN>
+		<COLUMN name="COMMAND_REPLAY_HISTORY" alias="Command replay history" type="text[]" extra="" reference="no"></COLUMN>		
+		<COLUMN name="CONNECTION_STATE" alias="Connection state" type="int" extra="enum" reference="no"></COLUMN>
+		<COLUMN name="DEVICE_STATE" alias="State of device" type="int" extra="enum" reference="no"></COLUMN>
+		<COLUMN name="DEVICE_FILETRANSFER" alias="State transfer of file" type="int" extra="enum" reference="no"></COLUMN>
+		<COLUMN name="ERROR_TABLE" alias="Error table" type="uuid" extra="" reference="ERRORS_LIVING_OBJ_MACH"></COLUMN>
+		<COLUMN name="CURRENT_ERROR" alias="Current error" type="text" extra="" reference="no"></COLUMN>
+		<COLUMN name="WS_TECH" alias="Workplace technology" type="int" extra="enum" reference="no"></COLUMN>
+    </TABLE>    
 	<TABLE name="ERRORS_LIVING_OBJ_MACH">
       	<COLUMN name="PKEY" alias="Primary key" type="uuid" extra="" reference="no"></COLUMN>	
       	<COLUMN name="NAME" alias="Name" type="varchar(255)" extra="" reference="no"></COLUMN>   
@@ -451,6 +472,5 @@
 		<COLUMN name="COORD_Y" alias="COORD_Y" type="float8" extra="" reference="no"></COLUMN>
 		<COLUMN name="COORD_Z" alias="COORD_Z" type="float8" extra="" reference="no"></COLUMN>
 	</TABLE>	
-
   </TABLES>
 </DatabaseEditor>
