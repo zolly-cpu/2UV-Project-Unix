@@ -63,11 +63,12 @@ ObjectViewerProg = myenv.Program('2UVObjectViewer', SourcesObjectViewer,
                     'libQt5Xml',
                     'libQt5Charts',
                     'libQt5Network',
+                    'libQt53DInput',
 					'libpq',
                     'libIce',
                     'libIceDiscovery',
                     'libIceLocatorDiscovery',
                     'libIceSSL',
-                    'libpython3.13'
+                    'libpython3.12'
                         ])
 myenv.Install (InstallDir, ObjectViewerProg)
