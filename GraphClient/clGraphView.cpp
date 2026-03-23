@@ -96,6 +96,11 @@ void clGraphView::initializeUI()
 		meDateTimeEdit[1] = new QDateTimeEdit;
 		meDateTimeEdit[1]->setDateTime(QDateTime::currentDateTime());
 		
+		meButton[0] = new QPushButton(QString("Generate data"));
+		connect(meButton[0], SIGNAL(clicked()),this,SLOT(slotButtonGeneratePressed()));
+		
+		
+		
 		layout->addWidget(meLabels[0][0],0,0);
 		layout->addWidget(meLabels[0][1],1,0);
 		layout->addWidget(meLabels[0][2],2,0);
@@ -103,6 +108,10 @@ void clGraphView::initializeUI()
 		layout->addWidget(meCheckBox[0],1,1);
 		layout->addWidget(meDateTimeEdit[0],2,1);
 		layout->addWidget(meDateTimeEdit[1],3,1);
+		layout->addWidget(meButton[0],4,0);
+		
+		
+		
 		
 		layout->addWidget(meChartView,0,1);
 		
@@ -119,8 +128,55 @@ void clGraphView::initializeUI()
 		meIceClientLogging->insertItem("70",QString(QHostInfo::localHostName()),"2UVGraphClient.exe","clGraphView::clGraphView() -> " + QString(e.what()));
     }
 }
-
-
+/*****************************
+* Slots
+*****************************/
+void clGraphView::slotButtonGeneratePressed()
+{
+	try
+	{
+		QString loExportPath = QFileDialog::getSaveFileName(nullptr, "Save excel ass ...", ".", "Excel (*.csv)" );
+		if (loExportPath.compare(QString("")) == 0)return;
+		
+		meIceClientLogging->insertItem("70",QString(QHostInfo::localHostName()),"2UVGraphClient.exe","clGraphView::slotButtonGeneratePressed() -> Path where file will be saved: " + loExportPath);
+		////////////////////////////////////////// Getting the operations ///////////////////////////////////////////////////////////////
+		vector <vector<QString>> genloResultX = meloResultX;
+		vector <vector<QString>> genloResultY = meloResultY;
+		
+		
+		meIceClientLogging->insertItem("70",QString(QHostInfo::localHostName()),"2UVGraphClient.exe",QString("clGraphView::slotButtonGeneratePressed() -> Values stored [%1]...").arg(genloResultX.size()));
+		
+		for (int i = 0; i < genloResultX.size();i++)
+		{
+			
+			vector <QString> memLoResultX = genloResultX.at(i);
+			vector <QString> memLoResultY = genloResultY.at(i);
+			
+			QString loFileName = QString("%1%2.csv").arg(loExportPath).arg(QString::number(i+1));		
+			QFile data(loFileName);
+			meIceClientLogging->insertItem("70",QString(QHostInfo::localHostName()),"2UVGraphClient.exe","clGraphView::slotButtonGeneratePressed() -> Name set ..." + loFileName);
+			if (!data.open(QFile::WriteOnly | QFile::Truncate))
+			{
+				meIceClientLogging->insertItem("70",QString(QHostInfo::localHostName()),"2UVGraphClient.exe","clGraphView::slotButtonGeneratePressed() -> Could not open file : " + data.fileName());
+				return;
+			}
+			QTextStream fileOut(&data);
+			{
+				for (int y = 0; y < memLoResultX.size(); y++)
+				{
+					fileOut << QString("%1;%2;%3").arg(QString::number(y)).arg(QString(memLoResultX.at(y))).arg(QString(memLoResultY.at(y)));
+					fileOut << Qt::endl;
+				}
+			}
+			data.close();
+		}	
+		
+	}
+	catch(exception &e)
+	{
+		meIceClientLogging->insertItem("70",QString(QHostInfo::localHostName()),"2UVGraphClient.exe","clGraphView::slotButtonGeneratePressed() -> " + QString(e.what()));
+	}
+}
 
 /*****************************
 * UI functions
@@ -185,9 +241,6 @@ void clGraphView::slotDoIt()
 			meIceClientLogging->insertItem("70",QString(QHostInfo::localHostName()),"2UVGraphClient.exe","clGraphView::slotDoIt() -> " + loReturnMessage);
 			return;
 		}
-		else
-			meIceClientLogging->insertItem("70",QString(QHostInfo::localHostName()),"2UVGraphClient.exe","clGraphView::slotDoIt() -> " + loReturnMessage);
-		
 		if (loReturnIds.size() < 1)
 		{
 			meIceClientLogging->insertItem("70",QString(QHostInfo::localHostName()),"2UVGraphClient.exe","clGraphView::slotDoIt() -> no result returned");
@@ -232,6 +285,12 @@ void clGraphView::slotDoIt()
 		vector <QString> loResultY;
 		vector <int> loIndexX;
 		vector <int> loIndexY;
+
+		vector <vector<QString>> memLoResultX;
+		vector <vector<QString>> memLoResultY;
+		memLoResultX.clear();
+		memLoResultY.clear();
+
 
 		//For each graph line
 		for (int t = 0; t < meGraphLines.size(); t++)
@@ -285,8 +344,6 @@ void clGraphView::slotDoIt()
 							meIceClientLogging->insertItem("70",QString(QHostInfo::localHostName()),"2UVGraphClient.exe","clGraphView::slotDoIt() -> " + loReturnMessageSub);
 							return;
 						}
-						else
-							meIceClientLogging->insertItem("70",QString(QHostInfo::localHostName()),"2UVGraphClient.exe","clGraphView::slotDoIt() -> " + loReturnMessageSub);
 						
 						if(loValuesSub.size() < 1)
 						{
@@ -332,8 +389,6 @@ void clGraphView::slotDoIt()
 							meIceClientLogging->insertItem("70",QString(QHostInfo::localHostName()),"2UVGraphClient.exe","clGraphView::slotDoIt() getFromTableDatabaseById-> " + loReturnMessageSub);
 							return;
 						}
-						else
-							meIceClientLogging->insertItem("70",QString(QHostInfo::localHostName()),"2UVGraphClient.exe","clGraphView::slotDoIt() -> getFromTableDatabaseById" + loReturnMessageSub);
 						
 						if(loValuesSub.size() < 1)
 						{
@@ -354,14 +409,19 @@ void clGraphView::slotDoIt()
 				}
 				
 				if (!addGraphLine(t,loResultX, loTypeX, loIndexX, loResultY, loTypeY, loIndexY, "test","blue"))
-				{
 					meIceClientLogging->insertItem("70",QString(QHostInfo::localHostName()),"2UVGraphClient.exe","clGraphView::slotDoIt() -> could not add values to graph ...");
-					
-				}
 				else
+				{
+					memLoResultX.push_back(loResultX);
+					memLoResultY.push_back(loResultY);
 					meIceClientLogging->insertItem("70",QString(QHostInfo::localHostName()),"2UVGraphClient.exe","clGraphView::slotDoIt() -> addGraphLine called with success ...");	
+				}
 		}
-		
+		//For memorty purpose
+		meloResultX.clear();
+		meloResultY.clear();
+		meloResultX = memLoResultX;
+		meloResultY = memLoResultY;
 		
 		meChart->removeAllSeries();	
 		//Add series to the chart	

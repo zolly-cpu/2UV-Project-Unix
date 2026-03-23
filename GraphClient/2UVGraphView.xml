@@ -1,5 +1,5 @@
 <GraphView>
-	<operationQuery class="OPERATION" property="OBJECT" type="uuid" expression="=" value="640bdc8c-2564-11f1-9439-0800273b2796" refreshMS="1000">
+	<operationQuery class="OPERATION" property="OBJECT" type="uuid" expression="=" value="640bdc8c-2564-11f1-9439-0800273b2796" refreshMS="5000">
 	</operationQuery>
 	<GraphLines>
 		<GraphLine color="red" name="Measured Value 01">

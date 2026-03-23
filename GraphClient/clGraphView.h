@@ -36,6 +36,7 @@
 #include <QtWidgets/QAbstractItemView>
 #include <QtNetwork/QHostInfo>
 #include <QtCore/QStorageInfo>
+#include <QtWidgets/QFileDialog>
 
 #include <QtCore/QByteArray>
 #include <QtCore/QString>
@@ -78,10 +79,11 @@ public:
 	
 public slots:
 	void slotDoIt();
-	
+    void slotButtonGeneratePressed();	
 private:
 	bool addGraphLine(int paLineSeries, vector<QString> paValuesX, QString paTypeX, vector <int> paIndexX, vector<QString> paValuesY, QString paTypeY, vector <int> paIndexY, QString paName, QString paColor);
 	void initializeUI();
+	
 	QTimer * meTimer;
 
     //Communication class logging client
@@ -98,8 +100,7 @@ private:
     QLabel *meLabels[NumGridRows][NumColls];
     QDateTimeEdit *meDateTimeEdit[NumColls];
 	QCheckBox *meCheckBox[NumColls];
-	
-	
+	QPushButton *meButton[NumColls];
 	
 	QString meGraphClass;
 	QString meGraphProperty;
@@ -109,7 +110,8 @@ private:
 	QString meGraphExpression;
 	vector<clGraphLine> meGraphLines;
 	
-	
+	vector <vector<QString>> meloResultX;
+	vector <vector<QString>> meloResultY;
 };
 #endif
 
