@@ -725,7 +725,7 @@ void clLivingObjectMach::readTcpData()
 	   if (loStartOperation)
 	   {
 			///////////////////////////////// over dll ///////////////////////////////////
-			clObjectCall * loObjectCall = callObjectDLL(QString("clOperation.dll"));
+			clObjectCall * loObjectCall = callObjectDLL(QString("./Objects/libclOperation.so"));
 			loObjectCall->createPluginClass(meIceClientServer, meIceClientLogging);
 			
 			vector <QString> loParametersType;
@@ -751,7 +751,7 @@ void clLivingObjectMach::readTcpData()
 			
 			loParameters.push_back("DATUM_START");			
 			loParametersValue.push_back(QString((QDateTime::currentDateTime()).toString("yyyy-MM-dd HH:mm:ss.zzz")));
-			loParametersType.push_back("timestamp");
+			loParametersType.push_back("timestamp(3)");
 			
 			loParameters.push_back("OPERATION_SOURCE");
 			loParametersValue.push_back("40");
@@ -827,7 +827,7 @@ void clLivingObjectMach::readTcpData()
 			//Close the operations
 			for (int j = 0; j < (int) loReturnIds.size(); j++)
 			{
-				clObjectCall * loObjectCallCloseOperation = callObjectDLL(QString("clOperation.dll"));
+				clObjectCall * loObjectCallCloseOperation = callObjectDLL(QString("./Objects/libclOperation.so"));
 				loObjectCallCloseOperation->createPluginClass(meIceClientServer, meIceClientLogging);
 		
 		
@@ -847,7 +847,7 @@ void clLivingObjectMach::readTcpData()
 				
 				loParametersClose.push_back("DATUM_STOP");
 				loParametersValueClose.push_back(QString((QDateTime::currentDateTime()).toString("yyyy-MM-dd HH:mm:ss.zzz")));
-				loParametersTypeClose.push_back("timestamp");
+				loParametersTypeClose.push_back("timestamp(3)");
 				
 				loParametersClose.push_back("OPERATION_STATE");
 				loParametersValueClose.push_back("20");
