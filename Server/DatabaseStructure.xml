@@ -356,6 +356,66 @@
 	  <COLUMN name="LEVEL" alias="Level" type="int" extra="enum" reference="no"></COLUMN>
 	  <COLUMN name="CREATED_ON" alias="Creation date" type="timestamp(3)" extra="" reference="no"></COLUMN>	  
     </TABLE>
+    <TABLE name="EMPLOYEE_WORKING_HOURS">
+      <COLUMN name="PKEY" alias="Primary key" type="uuid" extra="" reference="no"></COLUMN>	
+      <COLUMN name="NAME" alias="Naam" type="text" extra="" reference="no"></COLUMN>
+      <COLUMN name="COMMENT" alias="Naam" type="text" extra="" reference="no"></COLUMN>
+	  <COLUMN name="EMPLOYEE" alias="Naam" type="uuid" extra="" reference="EMPLOYEE"></COLUMN>
+	  <COLUMN name="EMPL_GROUP" alias="Naam" type="uuid" extra="" reference="EMPL_GROUP"></COLUMN>
+	  <COLUMN name="CREATED_ON" alias="Creation date" type="timestamp(3)" extra="" reference="no"></COLUMN>	  
+	  <COLUMN name="START_SHIFT" alias="Creation date" type="timestamp(3)" extra="" reference="no"></COLUMN>	  
+	  <COLUMN name="STOP_SHIFT" alias="Creation date" type="timestamp(3)" extra="" reference="no"></COLUMN>	  
+    </TABLE>
+    <TABLE name="EMPLOYEE_SICK_HOURS">
+      <COLUMN name="PKEY" alias="Primary key" type="uuid" extra="" reference="no"></COLUMN>	
+      <COLUMN name="NAME" alias="Naam" type="text" extra="" reference="no"></COLUMN>
+      <COLUMN name="COMMENT" alias="Naam" type="text" extra="" reference="no"></COLUMN>
+	  <COLUMN name="EMPLOYEE" alias="Naam" type="uuid" extra="" reference="EMPLOYEE"></COLUMN>
+	  <COLUMN name="EMPL_GROUP" alias="Naam" type="uuid" extra="" reference="EMPL_GROUP"></COLUMN>
+	  <COLUMN name="CREATED_ON" alias="Creation date" type="timestamp(3)" extra="" reference="no"></COLUMN>	  
+	  <COLUMN name="START_SHIFT" alias="Creation date" type="timestamp(3)" extra="" reference="no"></COLUMN>	  
+	  <COLUMN name="STOP_SHIFT" alias="Creation date" type="timestamp(3)" extra="" reference="no"></COLUMN>	  
+    </TABLE>    
+    <TABLE name="EMPLOYEE_ADV_HOURS">
+      <COLUMN name="PKEY" alias="Primary key" type="uuid" extra="" reference="no"></COLUMN>	
+      <COLUMN name="NAME" alias="Naam" type="text" extra="" reference="no"></COLUMN>
+      <COLUMN name="COMMENT" alias="Naam" type="text" extra="" reference="no"></COLUMN>
+	  <COLUMN name="EMPLOYEE" alias="Naam" type="uuid" extra="" reference="EMPLOYEE"></COLUMN>
+	  <COLUMN name="EMPL_GROUP" alias="Naam" type="uuid" extra="" reference="EMPL_GROUP"></COLUMN>
+	  <COLUMN name="CREATED_ON" alias="Creation date" type="timestamp(3)" extra="" reference="no"></COLUMN>	  
+	  <COLUMN name="START_SHIFT" alias="Creation date" type="timestamp(3)" extra="" reference="no"></COLUMN>	  
+	  <COLUMN name="STOP_SHIFT" alias="Creation date" type="timestamp(3)" extra="" reference="no"></COLUMN>	  
+    </TABLE>
+    <TABLE name="EMPLOYEE_UNDEFINED_HOURS">
+      <COLUMN name="PKEY" alias="Primary key" type="uuid" extra="" reference="no"></COLUMN>	
+      <COLUMN name="NAME" alias="Naam" type="text" extra="" reference="no"></COLUMN>
+      <COLUMN name="COMMENT" alias="Naam" type="text" extra="" reference="no"></COLUMN>
+	  <COLUMN name="EMPLOYEE" alias="Naam" type="uuid" extra="" reference="EMPLOYEE"></COLUMN>
+	  <COLUMN name="EMPL_GROUP" alias="Naam" type="uuid" extra="" reference="EMPL_GROUP"></COLUMN>
+	  <COLUMN name="CREATED_ON" alias="Creation date" type="timestamp(3)" extra="" reference="no"></COLUMN>	  
+	  <COLUMN name="START_SHIFT" alias="Creation date" type="timestamp(3)" extra="" reference="no"></COLUMN>	  
+	  <COLUMN name="STOP_SHIFT" alias="Creation date" type="timestamp(3)" extra="" reference="no"></COLUMN>	  
+    </TABLE>
+    <TABLE name="EMPLOYEE_OVERTIME_HOURS">
+      <COLUMN name="PKEY" alias="Primary key" type="uuid" extra="" reference="no"></COLUMN>	
+      <COLUMN name="NAME" alias="Naam" type="text" extra="" reference="no"></COLUMN>
+      <COLUMN name="COMMENT" alias="Naam" type="text" extra="" reference="no"></COLUMN>
+	  <COLUMN name="EMPLOYEE" alias="Naam" type="uuid" extra="" reference="EMPLOYEE"></COLUMN>
+	  <COLUMN name="EMPL_GROUP" alias="Naam" type="uuid" extra="" reference="EMPL_GROUP"></COLUMN>
+	  <COLUMN name="CREATED_ON" alias="Creation date" type="timestamp(3)" extra="" reference="no"></COLUMN>	  
+	  <COLUMN name="START_SHIFT" alias="Creation date" type="timestamp(3)" extra="" reference="no"></COLUMN>	  
+	  <COLUMN name="STOP_SHIFT" alias="Creation date" type="timestamp(3)" extra="" reference="no"></COLUMN>	  
+    </TABLE>            
+    <TABLE name="EMPLOYEE_VACATION_HOURS">
+      <COLUMN name="PKEY" alias="Primary key" type="uuid" extra="" reference="no"></COLUMN>	
+      <COLUMN name="NAME" alias="Naam" type="text" extra="" reference="no"></COLUMN>
+      <COLUMN name="COMMENT" alias="Naam" type="text" extra="" reference="no"></COLUMN>
+	  <COLUMN name="EMPLOYEE" alias="Naam" type="uuid" extra="" reference="EMPLOYEE"></COLUMN>
+	  <COLUMN name="EMPL_GROUP" alias="Naam" type="uuid" extra="" reference="EMPL_GROUP"></COLUMN>
+	  <COLUMN name="CREATED_ON" alias="Creation date" type="timestamp(3)" extra="" reference="no"></COLUMN>	  
+	  <COLUMN name="START_SHIFT" alias="Creation date" type="timestamp(3)" extra="" reference="no"></COLUMN>	  
+	  <COLUMN name="STOP_SHIFT" alias="Creation date" type="timestamp(3)" extra="" reference="no"></COLUMN>	  
+    </TABLE>                                    
     <TABLE name="LINKEDDOC">
       <COLUMN name="PKEY" alias="Primary key" type="uuid" extra="" reference="no"></COLUMN>	
       <COLUMN name="NAME" alias="Name" type="text" extra="" reference="no"></COLUMN>
