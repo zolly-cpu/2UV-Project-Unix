@@ -13,6 +13,30 @@ clObject::clObject(clIceClientServer * paIceClientServer, clIceClientLogging *pa
 		cout << "clWorkstationCycles::clWorkstationCycles -> failed" << endl;
 	}
 }
+clObject::clObject(clObject * paObject)
+{
+	try
+	{
+		
+		meIceClientLogging = paObject->meIceClientLogging;
+		meIceClientServer = paObject->meIceClientServer;
+
+		ClassName = paObject->ClassName;
+		ObjectId = paObject->ObjectId;
+
+		meObjectCalls = paObject->meObjectCalls;
+		meClassNameList = paObject->meClassNameList;
+		meClassMethodsList = paObject->meClassMethodsList;
+
+		meMethodCalls = paObject->meMethodCalls;
+		meMethodNamesList = paObject->meMethodNamesList;
+
+		meDatabaseColumnsByClassNameList = paObject->meDatabaseColumnsByClassNameList;
+	}
+	catch(...)
+	{
+	}
+}
 clObject::~clObject()
 {
 }
@@ -146,8 +170,7 @@ bool clObject::get(QString paPropName, QDateTime &paValue)
 			return false;					
 		}
 		
-		QDateTime loDateTime;
-		loDateTime.fromString(loReturnValues.at(0).c_str(), "yyyy-MM-dd hh:mm:ss.zzz");
+		QDateTime loDateTime = QDateTime::fromString(loReturnValues.at(0).c_str(), "yyyy-MM-dd hh:mm:ss.zzz");
 		paValue = loDateTime;
 		
 		return true;		
@@ -201,8 +224,7 @@ bool clObject::get(QString paPropName, vector <QDateTime> &paValue)
 			QStringList loStringList = loValues.split(",");
 			for (int i = 0; i < loStringList.size(); i++)
 			{
-				QDateTime loDateTime;
-				loDateTime.fromString(loStringList.at(i), "yyyy-MM-dd hh:mm:ss.zzz");
+				QDateTime loDateTime = QDateTime::fromString(loStringList.at(i), "yyyy-MM-dd hh:mm:ss.zzz");
 				paValue.push_back(loDateTime);
 			}
 		}		
@@ -1793,12 +1815,15 @@ bool clObject::insertObject(vector <QString> paColumns, vector <QString> paValue
 
 					//Get the id of the product i
 					//Get from the table by property
-					vector <string> loParametersType;
-					vector <string> loParameters;
-					vector <string> loParametersValue;
-					vector <string> loLogExp;
+
+
+					vector <std::string> loParameters;
+					vector <std::string> loParametersValue;
+					vector <std::string> loParametersType;
+					vector <std::string> loLogExp;
 					vector <std::string> loReturnIds;
 					QString loParamReturnMessage;
+
 
 					loParameters.push_back("NAME");
 					loParametersValue.push_back(loProductName.toUtf8().constData());

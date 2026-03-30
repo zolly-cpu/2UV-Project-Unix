@@ -101,6 +101,12 @@ void clMainWindow::createActions()
 	meActionObjectLocator = new QAction(tr("&Object locator"), this);
     meActionObjectLocator->setStatusTip(tr("Object locator"));
     connect(meActionObjectLocator, SIGNAL(triggered()), this, SLOT(startObjectLocator()));		
+    
+	meActionSchedulePlanner = new QAction(tr("&Schedule planner"), this);
+    meActionSchedulePlanner->setStatusTip(tr("Schedule planner"));
+    connect(meActionSchedulePlanner, SIGNAL(triggered()), this, SLOT(startSchedulePlanner()));    
+    
+    
 }
 //Creating the menu
 void clMainWindow::createMenus()
@@ -114,6 +120,7 @@ void clMainWindow::createMenus()
     productMenu->addAction(meConfigProduct);
 	productMenu->addAction(meActionProductPlanner);
 	productMenu->addAction(meActionObjectLocator);
+	productMenu->addAction(meActionSchedulePlanner);
 }
 /***********************************
 * UI slots
@@ -156,6 +163,19 @@ void clMainWindow::startProductPlanner()
         catch(exception &e)
         {	
             meIceClientLogging->insertItem("50",QString(QHostInfo::localHostName()),"2UVObjectView.exe","clMainWindow::startProductPlanner()" + QString(e.what()));
+        }
+}
+void clMainWindow::startSchedulePlanner()
+{
+        try
+        {
+            meSchedulePlanner = new clSchedulePlanner(meIceClientServer,meIceClientLogging,meClassLoader, meConfigurationFile);
+            meWorkspace->addSubWindow(meSchedulePlanner);
+            meSchedulePlanner->show();
+        }
+        catch(exception &e)
+        {	
+            meIceClientLogging->insertItem("50",QString(QHostInfo::localHostName()),"2UVObjectView.exe","clMainWindow::startSchedulePlanner()" + QString(e.what()));
         }
 }
 void clMainWindow::startObjectLocator()

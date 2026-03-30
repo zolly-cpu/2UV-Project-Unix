@@ -47,6 +47,7 @@
 #include "clIceClientServer.h"
 #include "clObjectViewer.h"
 #include "clProductPlanner.h"
+#include "clSchedulePlanner.h"
 #include "clObjectLocator.h"
 #include "clClassLoader.h"
 
@@ -69,6 +70,7 @@ public slots:
     void exitApplication();
     void startProductConfig();
 	void startProductPlanner();
+	void startSchedulePlanner();
 	void startObjectLocator();
 	void slotDoIt();
 private:
@@ -85,6 +87,7 @@ private:
     clObjectViewer *meObjectViewer;
 	clProductPlanner *meProductPlanner;
 	clObjectLocator *meObjectLocator;
+	clSchedulePlanner *meSchedulePlanner;
 	
 	QTimer * meTimer;
 
@@ -101,6 +104,7 @@ private:
     QAction *meConfigProduct;
 	QAction *meActionProductPlanner;
 	QAction *meActionObjectLocator;
+	QAction *meActionSchedulePlanner;
 	
 
 
