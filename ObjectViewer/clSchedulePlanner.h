@@ -105,7 +105,7 @@ private:
 	vector <QString> meIcon;
 	vector <QString> meClass;
 	
-	const int meSpacerInTimeline = 110;	
+	const int meSpacerInTimeline = 22;	
 	
 	//TODO change to me
 	QDateTime loMinDateTime;

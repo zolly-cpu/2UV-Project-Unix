@@ -164,8 +164,8 @@ bool clSchedulePlanner::fillWorkingArea()
 		
 		loWidget->setLayout(layout);
 		
-		meSchedulePlanner.gridLayout_timeline->addWidget(loHeader,0,0);	    
-		meSchedulePlanner.gridLayout_timeline->addWidget(loWidget,0,1);
+		//meSchedulePlanner.gridLayout_timeline->addWidget(loHeader,0,0);	    
+		meSchedulePlanner.gridLayout_timeline->addWidget(loWidget,0,0);
 		
 		return true;
 	}
@@ -298,7 +298,7 @@ bool clSchedulePlanner::createClassesInTreeView(vector<std::string> paTables)
 				meView.at(meView.size()-1)->setInteractive(true);
 				meView.at(meView.size()-1)->setMouseTracking(true);
 				meView.at(meView.size()-1)->setFocus();
-				meSchedulePlanner.gridLayout_timeline->addWidget(meView.at(meView.size()-1),meView.size() + 1,1);						
+				meSchedulePlanner.gridLayout_timeline->addWidget(meView.at(meView.size()-1),meView.size() + 1,0);						
 				clGraphicsView * loGraphicsView = meView.at(meView.size()-1);
 				QObject::connect(loGraphicsView,SIGNAL(sendMouseDoubleClickEventSignal(QGraphicsItem*)),this,SLOT(slotItemDoubleClicked(QGraphicsItem*)));
 						
@@ -422,7 +422,7 @@ bool clSchedulePlanner::fillTimeTableView(QString paUUID, QString paName, int k)
         QGraphicsItem *item_sep = meScene.at(meScene.size() - 1)->addLine( 0, k * 100 - 5, loEndOfLine, k * 100 - 5, pen);
         
         //Graphics for the plane Add names
-        for(int i = 0; i < ((meDateTimeEdit.at(1)->dateTime().toSecsSinceEpoch()-meDateTimeEdit.at(0)->dateTime().toSecsSinceEpoch())/900); i++)
+        for(int i = 0; i < ((meDateTimeEdit.at(1)->dateTime().toSecsSinceEpoch()-meDateTimeEdit.at(0)->dateTime().toSecsSinceEpoch())/900); i += 16)
         {
 			QGraphicsItem *item = meScene.at(meScene.size() - 1)->addText(paName);
 			item->setPos(i*meSpacerInTimeline,k * 100);

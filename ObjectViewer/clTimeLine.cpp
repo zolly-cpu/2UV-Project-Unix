@@ -44,6 +44,7 @@ void clTimeLine::setAxes()
 		
         QGraphicsItem *item = scene->addText(loDateTime.toString("dd.MM.yy hh:mm"));
         item->setPos(i*meSpacerInTimeline,-40);
+        item->setRotation(-90);
         
         QPen pen = QPen(Qt::black,1);
         QGraphicsItem *item_line = scene->addLine(i*meSpacerInTimeline,-40,i*meSpacerInTimeline,100 * meAmountOfEmployees + 1,pen);
