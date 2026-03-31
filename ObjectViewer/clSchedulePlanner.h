@@ -77,6 +77,8 @@ public slots:
 	void slotItemDoubleClicked(QGraphicsItem * paItem);
 	void slotButtonNewPressed();
 	void slotButtonRefreshPressed();
+	void slotDeleteObject();
+	void slotEditObject();
 private:
     clIceClientLogging * meIceClientLogging;
     clIceClientServer * meIceClientServer;	
@@ -86,28 +88,30 @@ private:
 	//bool addElementsToQTreeWidget(QTreeWidgetItem * paItem, vector<std::string> paReturnIds, vector<std::string> paReturnNames);	
 	bool createClassesInTreeView(vector<std::string> paTables);
 	bool removeElementsFromEmployeeView();
-	bool editObject(clGraphicsItem *paGraphicsItem);
+	
 	
 	bool fillWorkingArea();
-	bool fillTimeTableView(QString paUUID, QString paName);
+	bool fillTimeTableView(QString paUUID, QString paName, int paIndex);
 	vector <clObject> returnObjectsOfTableForId(QString paTableName, QString paId);
 	
 	vector <QGraphicsScene *> meScene;
     vector <clGraphicsView *> meView;
     vector <clTimeLine *> meTimeline;
     vector <clGraphicsItem *> meGraphicsItems;
+    clGraphicsItem * meSelectedGraphicsItem;
 	
 	QString getRelatedIcon(QString paClassName);
 	void readMappingIcons();	
 	vector <QString> meIcon;
 	vector <QString> meClass;
 	
-	const int meSpacerInTimeline = 150;	
+	const int meSpacerInTimeline = 110;	
 	
 	//TODO change to me
 	QDateTime loMinDateTime;
 	QDateTime loMaxDateTime;
 	
+	vector<QDateTimeEdit *>  meDateTimeEdit;
 	QComboBox * meCboClassName;
 };
 

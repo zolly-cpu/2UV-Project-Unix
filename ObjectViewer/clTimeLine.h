@@ -51,6 +51,7 @@ public:
     
     long meMinAxes, meMaxAxes;
     int meSpacerInTimeline = 100;
+    int meAmountOfEmployees = 0;
 };
 
 #endif // TIMELINE_H

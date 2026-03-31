@@ -134,6 +134,28 @@ bool clSchedulePlanner::fillWorkingArea()
 		QStringList loListOfClassNames = {"EMPLOYEE_WORKING_HOURS","EMPLOYEE_SICK_HOURS","EMPLOYEE_ADV_HOURS","EMPLOYEE_UNDEFINED_HOURS","EMPLOYEE_OVERTIME_HOURS"};
 		meCboClassName->addItems(loListOfClassNames);
 		
+		
+		
+		
+		QDateTime loDateTimeStart = QDateTime::currentDateTime();
+		QDateTime loDateTimeStop = QDateTime::currentDateTime();
+		loDateTimeStart.setTime(QTime(0,0,0));
+		loDateTimeStop.setTime(QTime(24,0,0));
+		QDateTime loDateTimeStopTemp = loDateTimeStop.addDays(30);
+		QDateTime loDateTimeStartTemp = loDateTimeStart.addDays(-1);
+		
+		
+		QLabel * loStartDate = new QLabel("Start date:");
+		meDateTimeEdit.push_back(new QDateTimeEdit(loDateTimeStartTemp));
+		meDateTimeEdit.at(0)->setDisplayFormat("yyyy-MM-dd hh:mm:ss.zzz");
+		QLabel * loStopDate = new QLabel("Stop date:");
+		meDateTimeEdit.push_back(new QDateTimeEdit(loDateTimeStopTemp));
+		meDateTimeEdit.at(1)->setDisplayFormat("yyyy-MM-dd hh:mm:ss.zzz");		 
+		 
+		layout->addWidget(meDateTimeEdit.at(1),0,7);
+		layout->addWidget(loStopDate,0,6);
+		layout->addWidget(meDateTimeEdit.at(0),0,5);
+		layout->addWidget(loStartDate,0,4);
 		layout->addWidget(loBtnRefresh,0,3);
 		layout->addWidget(loBtnNew,0,2);
 		layout->addWidget(meCboClassName,0,1);
@@ -168,6 +190,9 @@ void clSchedulePlanner::fillEmployeeView()
 		//Initialize the dates
 		loMinDateTime = QDateTime::fromString("1970-01-01 00:00:00", "yyyy-MM-dd HH:mm:ss");
 		loMaxDateTime = QDateTime::fromString("1970-01-01 00:00:00", "yyyy-MM-dd HH:mm:ss");
+		
+		
+		
 				
 		vector<std::string> loTables;
 		loTables.push_back("EMPLOYEE");
@@ -259,6 +284,24 @@ bool clSchedulePlanner::createClassesInTreeView(vector<std::string> paTables)
 			}
 			else
 			{
+				//Init tables
+				
+				meScene.push_back(new QGraphicsScene());
+				meView.push_back(new clGraphicsView(meScene.at(meScene.size()-1)));
+				meTimeline.push_back(new clTimeLine(meView.at(meView.size()-1)));
+				meTimeline.at(meTimeline.size()-1)->meMinAxes = meDateTimeEdit.at(0)->dateTime().toSecsSinceEpoch();
+				meTimeline.at(meTimeline.size()-1)->meMaxAxes = meDateTimeEdit.at(1)->dateTime().toSecsSinceEpoch();
+				meTimeline.at(meTimeline.size()-1)->meSpacerInTimeline = meSpacerInTimeline;
+				meTimeline.at(meTimeline.size()-1)->meAmountOfEmployees = loReturnId.size();
+				meTimeline.at(meTimeline.size()-1)->setAxes();			
+					
+				meView.at(meView.size()-1)->setInteractive(true);
+				meView.at(meView.size()-1)->setMouseTracking(true);
+				meView.at(meView.size()-1)->setFocus();
+				meSchedulePlanner.gridLayout_timeline->addWidget(meView.at(meView.size()-1),meView.size() + 1,1);						
+				clGraphicsView * loGraphicsView = meView.at(meView.size()-1);
+				QObject::connect(loGraphicsView,SIGNAL(sendMouseDoubleClickEventSignal(QGraphicsItem*)),this,SLOT(slotItemDoubleClicked(QGraphicsItem*)));
+						
 				for (int k = 0; k < loReturnId.size(); k++)
 				{
 					clClassObjectTreeItem *newItem;
@@ -275,8 +318,9 @@ bool clSchedulePlanner::createClassesInTreeView(vector<std::string> paTables)
 					
                     meIceClientLogging->insertItem("50",QString(QHostInfo::localHostName()),"2UVObjectViewer.exe","clSchedulePlanner::createClassesInTreeView -> Added ID [" + newItem->meUUID + "]");
                     
+        
                     //Fill the time table view
-                    fillTimeTableView(newItem->meUUID, newItem->meNameDisplay);
+                    fillTimeTableView(newItem->meUUID, newItem->meNameDisplay,k);
 				}
 			}
         }
@@ -309,15 +353,15 @@ vector <clObject> clSchedulePlanner::returnObjectsOfTableForId(QString paTableNa
 		loTypeValue.push_back("uuid");
 		loLogExp.push_back("=");
 
-		//Must be greater than current time
-		QDateTime loDateTime = QDateTime::currentDateTime();
-		loDateTime.setTime(QTime(0,0,0));
-		
 		loProperties.push_back("START_SHIFT");
-		loValue.push_back(QString(loDateTime.toString("yyyy-MM-dd HH:mm:ss.zzz")).toStdString());
+		loValue.push_back(QString(meDateTimeEdit.at(0)->dateTime().toString("yyyy-MM-dd HH:mm:ss.zzz")).toStdString());
 		loTypeValue.push_back("timestamp(3)");
 		loLogExp.push_back(">");
 
+		loProperties.push_back("STOP_SHIFT");
+		loValue.push_back(QString(meDateTimeEdit.at(1)->dateTime().toString("yyyy-MM-dd HH:mm:ss.zzz")).toStdString());
+		loTypeValue.push_back("timestamp(3)");
+		loLogExp.push_back("<");
 
 
 		QString loStart = QString("0");
@@ -355,7 +399,7 @@ vector <clObject> clSchedulePlanner::returnObjectsOfTableForId(QString paTableNa
 
 
 
-bool clSchedulePlanner::fillTimeTableView(QString paUUID, QString paName)
+bool clSchedulePlanner::fillTimeTableView(QString paUUID, QString paName, int k)
 {
 	try
 	{
@@ -368,117 +412,22 @@ bool clSchedulePlanner::fillTimeTableView(QString paUUID, QString paName)
 	    vector <clObject> loObjectsAdvHours = returnObjectsOfTableForId(QString("EMPLOYEE_ADV_HOURS"),loObject.ObjectId);
 	    vector <clObject> loObjectsUndifinedHours = returnObjectsOfTableForId(QString("EMPLOYEE_UNDEFINED_HOURS"),loObject.ObjectId);
 	    vector <clObject> loObjectsOvertimeHours = returnObjectsOfTableForId(QString("EMPLOYEE_OVERTIME_HOURS"),loObject.ObjectId);
-	    	    
-	    for (int i = 0; i < loObjectsWorkingHours.size(); i++)
-	    {
-			QDateTime loStop;
-			QDateTime loStart;
-			loObjectsWorkingHours.at(i).get("START_SHIFT",loStart);
-			loObjectsWorkingHours.at(i).get("STOP_SHIFT",loStop);
-			meIceClientLogging->insertItem("50",QString(QHostInfo::localHostName()),"2UVObjectViewer.exe","clSchedulePlanner::fillTimeTableView -> " + QString("Dates [%1][%2]").arg(loStart.toString()).arg(loStop.toString()));
-			if (loMinDateTime == QDateTime::fromString("1970-01-01 00:00:00", "yyyy-MM-dd HH:mm:ss"))
-				loMinDateTime = loStart;
-			else if(loMinDateTime > loStart)
-				loMinDateTime = loStart;
-			if (loMaxDateTime == QDateTime::fromString("1970-01-01 00:00:00", "yyyy-MM-dd HH:mm:ss"))
-				loMaxDateTime = loStop;
-			else if(loMaxDateTime < loStop)
-				loMaxDateTime = loStop;
-		}
 	    
-	    for (int i = 0; i < loObjectsSickHours.size(); i++)
-	    {
-			QDateTime loStop;
-			QDateTime loStart;
-			loObjectsSickHours.at(i).get("START_SHIFT",loStart);
-			loObjectsSickHours.at(i).get("STOP_SHIFT",loStop);
-			meIceClientLogging->insertItem("50",QString(QHostInfo::localHostName()),"2UVObjectViewer.exe","clSchedulePlanner::fillTimeTableView -> " + QString("Dates [%1][%2]").arg(loStart.toString()).arg(loStop.toString()));
-			if (loMinDateTime == QDateTime::fromString("1970-01-01 00:00:00", "yyyy-MM-dd HH:mm:ss"))
-				loMinDateTime = loStart;
-			else if(loMinDateTime > loStart)
-				loMinDateTime = loStart;
-			if (loMaxDateTime == QDateTime::fromString("1970-01-01 00:00:00", "yyyy-MM-dd HH:mm:ss"))
-				loMaxDateTime = loStop;
-			else if(loMaxDateTime < loStop)
-				loMaxDateTime = loStop;
-		}
-			    
-	    for (int i = 0; i < loObjectsAdvHours.size(); i++)
-	    {
-			QDateTime loStop;
-			QDateTime loStart;
-			loObjectsAdvHours.at(i).get("START_SHIFT",loStart);
-			loObjectsAdvHours.at(i).get("STOP_SHIFT",loStop);
-			
-			if (loMinDateTime == QDateTime::fromString("1970-01-01 00:00:00", "yyyy-MM-dd HH:mm:ss"))
-				loMinDateTime = loStart;
-			else if(loMinDateTime > loStart)
-				loMinDateTime = loStart;
-			if (loMaxDateTime == QDateTime::fromString("1970-01-01 00:00:00", "yyyy-MM-dd HH:mm:ss"))
-				loMaxDateTime = loStop;
-			else if(loMaxDateTime < loStop)
-				loMaxDateTime = loStop;
-		}
-
-	    for (int i = 0; i < loObjectsUndifinedHours.size(); i++)
-	    {
-			QDateTime loStop;
-			QDateTime loStart;
-			loObjectsUndifinedHours.at(i).get("START_SHIFT",loStart);
-			loObjectsUndifinedHours.at(i).get("STOP_SHIFT",loStop);
-			
-			if (loMinDateTime == QDateTime::fromString("1970-01-01 00:00:00", "yyyy-MM-dd HH:mm:ss"))
-				loMinDateTime = loStart;
-			else if(loMinDateTime > loStart)
-				loMinDateTime = loStart;
-			if (loMaxDateTime == QDateTime::fromString("1970-01-01 00:00:00", "yyyy-MM-dd HH:mm:ss"))
-				loMaxDateTime = loStop;
-			else if(loMaxDateTime < loStop)
-				loMaxDateTime = loStop;
+	    loMinDateTime = meDateTimeEdit.at(0)->dateTime();
+	    loMaxDateTime = meDateTimeEdit.at(1)->dateTime();
+		
+		//Graphics for the plane line
+		QPen pen = QPen(Qt::black,1);
+		long loEndOfLine = ((loMaxDateTime.toSecsSinceEpoch() - loMinDateTime.toSecsSinceEpoch())/900) * meSpacerInTimeline;
+        QGraphicsItem *item_sep = meScene.at(meScene.size() - 1)->addLine( 0, k * 100 - 5, loEndOfLine, k * 100 - 5, pen);
+        
+        //Graphics for the plane Add names
+        for(int i = 0; i < ((meDateTimeEdit.at(1)->dateTime().toSecsSinceEpoch()-meDateTimeEdit.at(0)->dateTime().toSecsSinceEpoch())/900); i++)
+        {
+			QGraphicsItem *item = meScene.at(meScene.size() - 1)->addText(paName);
+			item->setPos(i*meSpacerInTimeline,k * 100);
 		}
 		
-	    for (int i = 0; i < loObjectsOvertimeHours.size(); i++)
-	    {
-			QDateTime loStop;
-			QDateTime loStart;
-			loObjectsOvertimeHours.at(i).get("START_SHIFT",loStart);
-			loObjectsOvertimeHours.at(i).get("STOP_SHIFT",loStop);
-			
-			if (loMinDateTime == QDateTime::fromString("1970-01-01 00:00:00", "yyyy-MM-dd HH:mm:ss"))
-				loMinDateTime = loStart;
-			else if(loMinDateTime > loStart)
-				loMinDateTime = loStart;
-			if (loMaxDateTime == QDateTime::fromString("1970-01-01 00:00:00", "yyyy-MM-dd HH:mm:ss"))
-				loMaxDateTime = loStop;
-			else if(loMaxDateTime <= loStop)
-				loMaxDateTime = loStop;
-		}		
-		
-	    meScene.push_back(new QGraphicsScene());
-	    meView.push_back(new clGraphicsView(meScene.at(meScene.size()-1)));
-	    meTimeline.push_back(new clTimeLine(meView.at(meView.size()-1)));
-		
-		
-		
-		loMinDateTime.setTime(QTime(0,0,0));
-		loMaxDateTime.setTime(QTime(24,0,0));
-		QDateTime loMaxDateTimeTemp = loMaxDateTime.addDays(1);
-		
-		
-		meTimeline.at(meTimeline.size()-1)->meMinAxes = loMinDateTime.toSecsSinceEpoch();
-		meTimeline.at(meTimeline.size()-1)->meMaxAxes = loMaxDateTimeTemp.toSecsSinceEpoch();
-		meTimeline.at(meTimeline.size()-1)->meSpacerInTimeline = meSpacerInTimeline;
-		meTimeline.at(meTimeline.size()-1)->setAxes();
-		
-		meIceClientLogging->insertItem("50",QString(QHostInfo::localHostName()),"2UVObjectViewer.exe","clSchedulePlanner::fillTimeTableView -> " + QString("[%1][%2]").arg(meTimeline.at(meTimeline.size()-1)->meMinAxes).arg(meTimeline.at(meTimeline.size()-1)->meMaxAxes));
-
-		meView.at(meView.size()-1)->setInteractive(true);
-		meView.at(meView.size()-1)->setMouseTracking(true);
-		meView.at(meView.size()-1)->setFocus();
-		
-		//The signal
-		clGraphicsView * loGraphicsView = meView.at(meView.size()-1);
-		QObject::connect(loGraphicsView,SIGNAL(sendMouseDoubleClickEventSignal(QGraphicsItem*)),this,SLOT(slotItemDoubleClicked(QGraphicsItem*)));
 		
 		
 		int outlineSize = 1;
@@ -501,7 +450,7 @@ bool clSchedulePlanner::fillTimeTableView(QString paUUID, QString paName)
 			long meStopPoint = ((loStop.toSecsSinceEpoch() - loMinDateTime.toSecsSinceEpoch())/900) * meSpacerInTimeline;
 			
 			meIceClientLogging->insertItem("50",QString(QHostInfo::localHostName()),"2UVObjectViewer.exe","clSchedulePlanner::fillTimeTableView -> " + QString("Before push back [%1][%2]").arg(meStartPoint).arg(meStopPoint));
-			meGraphicsItems.push_back(meTimeline.at(meTimeline.size()-1)->AddItem(QPointF(meStartPoint,0), QRect(0,0,(meStopPoint - meStartPoint),10), pen, brush));
+			meGraphicsItems.push_back(meTimeline.at(meTimeline.size()-1)->AddItem(QPointF(meStartPoint,k * 100 + 0), QRect(0,0,(meStopPoint - meStartPoint),10), pen, brush));
 			meIceClientLogging->insertItem("50",QString(QHostInfo::localHostName()),"2UVObjectViewer.exe","clSchedulePlanner::fillTimeTableView -> " + QString("After push back"));
 			meGraphicsItems.at(meGraphicsItems.size()-1)->meObject = new clObject(loObjectsWorkingHours.at(i));
 		}
@@ -522,7 +471,7 @@ bool clSchedulePlanner::fillTimeTableView(QString paUUID, QString paName)
 			
 			long meStartPoint = ((loStart.toSecsSinceEpoch() - loMinDateTime.toSecsSinceEpoch())/900) * meSpacerInTimeline;
 			long meStopPoint = ((loStop.toSecsSinceEpoch() - loMinDateTime.toSecsSinceEpoch())/900) * meSpacerInTimeline;
-			meGraphicsItems.push_back(meTimeline.at(meTimeline.size()-1)->AddItem(QPointF(meStartPoint,20), QRect(0,0,(meStopPoint - meStartPoint),10), penPurple, brushPurple));
+			meGraphicsItems.push_back(meTimeline.at(meTimeline.size()-1)->AddItem(QPointF(meStartPoint,k * 100 + 20), QRect(0,0,(meStopPoint - meStartPoint),10), penPurple, brushPurple));
 			meGraphicsItems.at(meGraphicsItems.size()-1)->meObject = new clObject(loObjectsSickHours.at(i));
 
 		}
@@ -544,7 +493,7 @@ bool clSchedulePlanner::fillTimeTableView(QString paUUID, QString paName)
 			
 			long meStartPoint = ((loStart.toSecsSinceEpoch() - loMinDateTime.toSecsSinceEpoch())/900) * meSpacerInTimeline;
 			long meStopPoint = ((loStop.toSecsSinceEpoch() - loMinDateTime.toSecsSinceEpoch())/900) * meSpacerInTimeline;
-			meGraphicsItems.push_back(meTimeline.at(meTimeline.size()-1)->AddItem(QPointF(meStartPoint,40), QRect(0,0,(meStopPoint - meStartPoint),10), penGreen, brushGreen));
+			meGraphicsItems.push_back(meTimeline.at(meTimeline.size()-1)->AddItem(QPointF(meStartPoint, k * 100 + 40), QRect(0,0,(meStopPoint - meStartPoint),10), penGreen, brushGreen));
 			meGraphicsItems.at(meGraphicsItems.size()-1)->meObject = new clObject(loObjectsAdvHours.at(i));
 		}
 
@@ -564,7 +513,7 @@ bool clSchedulePlanner::fillTimeTableView(QString paUUID, QString paName)
 			
 			long meStartPoint = ((loStart.toSecsSinceEpoch() - loMinDateTime.toSecsSinceEpoch())/900) * meSpacerInTimeline;
 			long meStopPoint = ((loStop.toSecsSinceEpoch() - loMinDateTime.toSecsSinceEpoch())/900) * meSpacerInTimeline;
-			meGraphicsItems.push_back(meTimeline.at(meTimeline.size()-1)->AddItem(QPointF(meStartPoint,60), QRect(0,0,(meStopPoint - meStartPoint),10), penBlue, brushBlue));
+			meGraphicsItems.push_back(meTimeline.at(meTimeline.size()-1)->AddItem(QPointF(meStartPoint, k * 100 + 60), QRect(0,0,(meStopPoint - meStartPoint),10), penBlue, brushBlue));
 			meGraphicsItems.at(meGraphicsItems.size()-1)->meObject = new clObject(loObjectsUndifinedHours.at(i));
 		}
 		
@@ -583,11 +532,11 @@ bool clSchedulePlanner::fillTimeTableView(QString paUUID, QString paName)
 			
 			long meStartPoint = ((loStart.toSecsSinceEpoch() - loMinDateTime.toSecsSinceEpoch())/900) * meSpacerInTimeline;
 			long meStopPoint = ((loStop.toSecsSinceEpoch() - loMinDateTime.toSecsSinceEpoch())/900) * meSpacerInTimeline;
-			meGraphicsItems.push_back(meTimeline.at(meTimeline.size()-1)->AddItem(QPointF(meStartPoint,80), QRect(0,0,(meStopPoint - meStartPoint),10), penOrange, brushOrange));
+			meGraphicsItems.push_back(meTimeline.at(meTimeline.size()-1)->AddItem(QPointF(meStartPoint, k * 100 + 80), QRect(0,0,(meStopPoint - meStartPoint),10), penOrange, brushOrange));
 			meGraphicsItems.at(meGraphicsItems.size()-1)->meObject = new clObject(loObjectsOvertimeHours.at(i));
 		}
-		meSchedulePlanner.gridLayout_timeline->addWidget(meView.at(meView.size()-1),meView.size() + 1,1);	    
-		meSchedulePlanner.gridLayout_timeline->addWidget(new QLabel(paName),meView.size() + 1,0);	    
+			    
+		//meSchedulePlanner.gridLayout_timeline->addWidget(new QLabel(paName),meView.size() + 1,0);	   
 		
 		return true;
     }
@@ -617,9 +566,20 @@ void clSchedulePlanner::slotItemDoubleClicked(QGraphicsItem * paItem)
             */
 			if (loItem == paItem)
 			{
+				QMenu menu(this);
+				QAction *actionDelete = menu.addAction("DELETE");
+				QAction *actionEdit = menu.addAction("EDIT");
+			
+				meSelectedGraphicsItem = meGraphicsItems.at(i);
+
+				QObject::connect(actionDelete, SIGNAL(triggered()),this,SLOT(slotDeleteObject()));
+				QObject::connect(actionEdit, SIGNAL(triggered()),this,SLOT(slotEditObject()));
+				menu.exec(QCursor::pos());
+					
+					
 				meIceClientLogging->insertItem("50",QString(QHostInfo::localHostName()),"2UVObjectViewer.exe",QString("clSchedulePlanner::showDialogTimeSchedule -> object found [0x%1]").arg(reinterpret_cast<quintptr>(paItem), QT_POINTER_SIZE * 2, 16, QChar('0')));
-				//Show dialog
-				editObject(meGraphicsItems.at(i));
+					//Show dialog
+					//editObject(meGraphicsItems.at(i));
 				break;
 			}
 		}
@@ -629,13 +589,30 @@ void clSchedulePlanner::slotItemDoubleClicked(QGraphicsItem * paItem)
 		meIceClientLogging->insertItem("50",QString(QHostInfo::localHostName()),"2UVObjectViewer.exe","clSchedulePlanner::showDialogTimeSchedule -> " + QString(e.what()));
 	}
 }
-
-bool clSchedulePlanner::editObject(clGraphicsItem *paGraphicsItem)
+void clSchedulePlanner::slotDeleteObject()
 {
 	try
 	{
-/////////////////////////////////////
-		clObject loObject(paGraphicsItem->meObject);
+		//Delete the object
+		clObject * loObject = meSelectedGraphicsItem->meObject;
+		loObject->deleteObject();
+		
+		//Filling the employees
+		fillEmployeeView();
+	}
+	catch(exception &e)
+	{
+		meIceClientLogging->insertItem("50",QString(QHostInfo::localHostName()),"2UVObjectViewer.exe","clSchedulePlanner::slotDeleteObject -> " + QString(e.what()));
+	}
+}		
+
+void clSchedulePlanner::slotEditObject()
+{
+	try
+	{
+		
+		/////////////////////////////////////
+		clObject loObject(meSelectedGraphicsItem->meObject);
 		
 		//*********************************
         //* Getting the table information *
@@ -646,15 +623,15 @@ bool clSchedulePlanner::editObject(clGraphicsItem *paGraphicsItem)
 		vector<std::string> loExtra;
 		vector<std::string> loReference;
         QString loMessage;
-		meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVObjectViewer.exe","clSchedulePlanner::editObject()-> Table name=" + loObject.ClassName);
+		meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVObjectViewer.exe","clSchedulePlanner::slotEditObject()-> Table name=" + loObject.ClassName);
 		meIceClientServer->getAllPropertiesFromTable(loObject.ClassName,loPropertyName,loAlias,loType,loExtra,loReference,loMessage);
-		meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVObjectViewer.exe","clSchedulePlanner::editObject-> Amount of properties=" + QString::number(loPropertyName.size()));
+		meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVObjectViewer.exe","clSchedulePlanner::slotEditObject-> Amount of properties=" + QString::number(loPropertyName.size()));
 														
         
 		vector<clDatabaseColumn> loDatabaseColumn;
 		for (int i = 0; i < loPropertyName.size(); i++)
 		{
-			meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVObjectViewer.exe","clSchedulePlanner::editObject-> Propertie name [" + QString(loPropertyName[i].c_str()) + "]");
+			meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVObjectViewer.exe","clSchedulePlanner::slotEditObject-> Propertie name [" + QString(loPropertyName[i].c_str()) + "]");
 			clDatabaseColumn test(								QString(loPropertyName[i].c_str()),
 																QString(loAlias[i].c_str()),
 																QString(loType[i].c_str()),
@@ -679,7 +656,7 @@ bool clSchedulePlanner::editObject(clGraphicsItem *paGraphicsItem)
 														loReturnValues,
 														loReturnMessageGetById);
 														
-		meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVObjectViewer.exe","clSchedulePlanner::editObject -> " + loReturnMessageGetById);
+		meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVObjectViewer.exe","clSchedulePlanner::slotEditObject -> " + loReturnMessageGetById);
 		
 		
 		
@@ -718,12 +695,12 @@ bool clSchedulePlanner::editObject(clGraphicsItem *paGraphicsItem)
                                                             loTypeValue,
                                                             loReturnMessage);
 														
-            meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe","clParameterView::slotEditElement() -> " + loReturnMessage);
+            meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe","clParameterView::slotEditObject() -> " + loReturnMessage);
             
             
             
             //Modify on timeline
-            QGraphicsRectItem * loItem = (QGraphicsRectItem *) paGraphicsItem->meItem;
+            QGraphicsRectItem * loItem = (QGraphicsRectItem *) meSelectedGraphicsItem->meItem;
             
             
             QDateTime loStart, loStop; 
@@ -736,7 +713,7 @@ bool clSchedulePlanner::editObject(clGraphicsItem *paGraphicsItem)
 			loItem->setRect(0,0,(meStopPoint - meStartPoint),10);
 			
 			QPointF meCurrentPos = loItem->pos();			
-			meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe",QString("clParameterView::slotEditElement() -> update canceled [%1][%2][%3][%4][%5][%6]").arg(meStartPoint).arg(meCurrentPos.x()).arg(loStart.toSecsSinceEpoch()).arg(loStop.toSecsSinceEpoch()).arg(loMinDateTime.toSecsSinceEpoch()).arg(loMaxDateTime.toSecsSinceEpoch()));
+			meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe",QString("clParameterView::slotEditObject() -> update canceled [%1][%2][%3][%4][%5][%6]").arg(meStartPoint).arg(meCurrentPos.x()).arg(loStart.toSecsSinceEpoch()).arg(loStop.toSecsSinceEpoch()).arg(loMinDateTime.toSecsSinceEpoch()).arg(loMaxDateTime.toSecsSinceEpoch()));
 			
 			//SetPos
 
@@ -745,15 +722,15 @@ bool clSchedulePlanner::editObject(clGraphicsItem *paGraphicsItem)
         }
         else
         {
-            meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe","clParameterView::slotEditElement() -> update canceled");
+            meIceClientLogging->insertItem("10",QString(QHostInfo::localHostName()),"2UVServerTest.exe","clParameterView::slotEditObject() -> update canceled");
         }		
         
-        return true;
+    
 	}
 	catch(exception &e)
 	{
-		meIceClientLogging->insertItem("50",QString(QHostInfo::localHostName()),"2UVObjectViewer.exe","clSchedulePlanner::showDialogTimeSchedule -> " + QString(e.what()));
-		return false;
+		meIceClientLogging->insertItem("50",QString(QHostInfo::localHostName()),"2UVObjectViewer.exe","clSchedulePlanner::slotEditObject -> " + QString(e.what()));
+	
 	}
 }
 

@@ -46,7 +46,7 @@ void clTimeLine::setAxes()
         item->setPos(i*meSpacerInTimeline,-40);
         
         QPen pen = QPen(Qt::black,1);
-        QGraphicsItem *item_line = scene->addLine(i*meSpacerInTimeline,-40,i*meSpacerInTimeline,40,pen);
+        QGraphicsItem *item_line = scene->addLine(i*meSpacerInTimeline,-40,i*meSpacerInTimeline,100 * meAmountOfEmployees + 1,pen);
         
         
     }
