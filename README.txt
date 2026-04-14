@@ -2,8 +2,8 @@
 * Used Ubunut 24 *
 ******************
 
-Compile with the following:
----------------------------
+Compile with the following scons:
+---------------------------------
 python3.12
 zeroc
 - sudo apt install zeroc*
@@ -19,6 +19,19 @@ qt5
 scons
 - python3 -m pip install scons==4.2.0
 ---------------------------
+
+
+Compiiile with cmake
+-------------------------
+mkdir build
+cd build
+cmake ..
+make
+--------------------------
+
+
+
+
 sudo apt install pip
 mv /usr/lib/python3.12/EXTERNALLY-MANAGED /home/zolly/Documents
 python3 -m pip install scons==4.2.0
