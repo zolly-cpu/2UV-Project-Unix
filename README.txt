@@ -21,7 +21,7 @@ scons
 ---------------------------
 
 
-Compiiile with cmake
+Compile with cmake
 -------------------------
 mkdir build
 cd build
